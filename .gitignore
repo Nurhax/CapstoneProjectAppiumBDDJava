@@ -1,0 +1,12 @@
+# Ignore target folder
+target/
+
+# Ignore local netbeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+
+# Log file
+*.log

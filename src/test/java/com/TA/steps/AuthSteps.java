@@ -17,6 +17,9 @@ import org.openqa.selenium.By;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 /**
  *
@@ -25,6 +28,8 @@ import java.time.Duration;
 public class AuthSteps {
     
     private AndroidDriver driver;
+    public String Username;
+    public String Password;
 
     @Before
     public void setup() throws MalformedURLException {
@@ -43,7 +48,7 @@ public class AuthSteps {
         options.setCapability("appium:chromedriverExecutable", "C:\\Drivers\\chromedriver.exe");
 
         // Inisialisasi Driver (Pastikan URL sesuai port appium server, default 4723)
-        driver = new AndroidDriver(new URL("http://127.0.0.1:4723/"), options);
+        driver = new AndroidDriver(new URL("http://127.0.0.1:4723"), options);
         
         // Implicit wait
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
@@ -55,6 +60,8 @@ public class AuthSteps {
     public void penggunaSudahMemilikiAkun() {
         // Langkah ini biasanya bersifat asumsi data (Data Preparation).
         // Bisa dibiarkan kosong, atau diisi log agar terbaca di report.
+        Username = "iqbal2";
+        Password = "abcdef2";
         System.out.println("Data Preparation: Akun test sudah ada di database.");
     }
 
@@ -65,8 +72,8 @@ public class AuthSteps {
 
     @And("pengguna berada di Halaman Pembuka")
     public void penggunaBeradaDiHalamanPembuka() {
-        // Karena ini PWA, arahkan driver browser ke URL aplikasi Yoga kamu
-        driver.get("https://url-pwa-yoga-kamu.com"); 
+        // (NANTI INI DIGANTI, MASIH LOCAL)
+        driver.get("http://10.0.2.2:8000"); 
     }
 
     // --- SCENARIO 1 & 2: INTERAKSI PILIHAN ---
@@ -75,9 +82,9 @@ public class AuthSteps {
     @When("pengguna memilih opsi {string}")
     public void penggunaMemilihOpsi(String opsi) {
         if (opsi.equals("Sudah punya akun")) {
-            driver.findElement(By.id("btn-pilih-login")).click(); // Ganti ID sesuai elemen aslinya
+            driver.findElement(By.className("btn-primary")).click(); // Ganti ID sesuai elemen aslinya
         } else if (opsi.equals("Belum punya akun")) {
-            driver.findElement(By.id("btn-pilih-register")).click(); // Ganti ID sesuai elemen aslinya
+            driver.findElement(By.className("btn-secondary")).click(); // Ganti ID sesuai elemen aslinya
         }
     }
 
@@ -86,37 +93,57 @@ public class AuthSteps {
     @And("pengguna memasukkan Username dan Password yang valid pada Halaman Login")
     public void inputDataLoginValid() {
         // Ganti locator (By.id) sesuai dengan Inspect Element di PWA kamu
-        driver.findElement(By.id("input-username-login")).sendKeys("user_yoga_test");
-        driver.findElement(By.id("input-password-login")).sendKeys("password123");
+        driver.findElement(By.id("username")).sendKeys(Username);
+        driver.findElement(By.id("password")).sendKeys(Password);
     }
 
     // --- SCENARIO 2: FORM REGISTER ---
 
     @And("pengguna memasukkan Username, Nomer telpon, dan Password yang valid pada Halaman Register")
     public void inputDataRegisterValid() {
-        driver.findElement(By.id("input-username-reg")).sendKeys("member_baru");
-        driver.findElement(By.id("input-phone-reg")).sendKeys("081234567890");
-        driver.findElement(By.id("input-password-reg")).sendKeys("pass_baru123");
+        driver.findElement(By.id("username")).sendKeys("iqbalTestE2E234");
+        driver.findElement(By.name("phone")).sendKeys("081234567890");
+        driver.findElement(By.id("password")).sendKeys("testing123!");
     }
 
     // --- SCENARIO 1 & 2: SUBMIT BUTTON ---
 
     @And("pengguna menekan tombol {string}")
     public void penggunaMenekanTombol(String namaTombol) {
-        // Trik efisien: Menggunakan XPath untuk mencari tombol berdasarkan Teks-nya secara dinamis
-        String xpathTombol = String.format("//button[text()='%s']", namaTombol);
-        driver.findElement(By.xpath(xpathTombol)).click();
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        // Kita buat logic untuk menyesuaikan teks di Gherkin dengan teks di HTML
+        String teksTombolHtml = "";
+
+        if (namaTombol.equalsIgnoreCase("Login")) {
+            teksTombolHtml = "Masuk";
+        } else if (namaTombol.equalsIgnoreCase("Register")) {
+            teksTombolHtml = "Buat Akun";
+        } else {
+            teksTombolHtml = namaTombol;
+        }
+
+        // XPath ini akan mencari <button> yang berisi teks sesuai variabel teksTombolHtml
+        String xpathSelector = String.format("//button[contains(text(), '%s')]", teksTombolHtml);
+
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathSelector))).click();
     }
 
-    // --- SCENARIO 1 & 2: VERIFIKASI NOTIFIKASI ---
+    // --- SCENARIO 2: VERIFIKASI NOTIFIKASI ---
 
+    // AuthSteps.java baris 139
     @Then("sistem menampilkan notifikasi {string}")
-    public void sistemMenampilkanNotifikasi(String pesanNotifHarapan) {
-        // Cari elemen notifikasi (misal: alert, toast message, atau modal popup)
-        String teksMuncul = driver.findElement(By.className("toast-message")).getText(); // Ganti class-nya
+    public void sistemMenampilkanNotifikasi(String expectedMessage) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        // Cari elemen toast/notifikasi yang muncul
+        WebElement notification = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("alert-success"))); 
         
-        // Assert akan menggagalkan test jika notifikasi tidak sesuai
-        Assert.assertTrue("Pesan notifikasi salah atau tidak muncul!", teksMuncul.contains(pesanNotifHarapan));
+        String actualMessage = notification.getText();
+
+        // Gunakan assertTrue dengan pesan yang lebih informatif
+        Assert.assertTrue("Notifikasi tidak sesuai! Munculnya: " + actualMessage, 
+                           actualMessage.contains("Akun berhasil dibuat") || actualMessage.equals(expectedMessage));
     }
 
     // --- SCENARIO 1: VERIFIKASI DASHBOARD ---
@@ -125,7 +152,7 @@ public class AuthSteps {
     public void penggunaDiarahkanKeDashboard() {
         // Cara terbaik memastikan pindah halaman adalah mengecek elemen khas di halaman Dashboard
         // Misalnya judul halaman atau menu navigasi
-        boolean isDashboardMuncul = driver.findElement(By.id("dashboard-header-title")).isDisplayed();
+        boolean isDashboardMuncul = driver.findElement(By.className("card-promo")).isDisplayed();
         Assert.assertTrue("Gagal masuk ke dashboard!", isDashboardMuncul);
     }
     

@@ -20,6 +20,8 @@ import java.time.Duration;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import java.util.Random;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 /**
  *
@@ -30,7 +32,13 @@ public class AuthSteps {
     private AndroidDriver driver;
     public String Username;
     public String Password;
+    
+    
+    public static String usernameCoach;
+    public static String usernameCustomer;
+    public Random rand = new Random();
 
+    //Setup sebelum testing, bakalan ada di setiap file steps
     @Before
     public void setup() throws MalformedURLException {
         // Setup Appium Options (Pengganti DesiredCapabilities di Appium 2)
@@ -41,121 +49,198 @@ public class AuthSteps {
         options.setDeviceName("Android Emulator"); // Ganti jika pakai device asli
         options.setAutomationName("UiAutomator2");
         
-        // PENTING UNTUK PWA: Gunakan Browser Chrome
+        // Gunain browser chrome dengan driver windows dengan versi sesuai API level device dalam hal ini versi ~121
         options.withBrowserName("Chrome");
         
-        // Ganti path yang error tadi dengan path baru yang lebih simple
+        // Set path dari chomedriver di disk C
         options.setCapability("appium:chromedriverExecutable", "C:\\Drivers\\chromedriver.exe");
 
-        // Inisialisasi Driver (Pastikan URL sesuai port appium server, default 4723)
+        // Inisialisasi Driver dengan port default: 4723
         driver = new AndroidDriver(new URL("http://127.0.0.1:4723"), options);
         
-        // Implicit wait
+        // Tunggu sampai setup selesai kalau kelamaan bubar
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
     }
-
-// --- SCENARIO 1 & 2: SETUP AWAL ---
-
-    @Given("pengguna sudah memiliki akun yang terdaftar dan aktif")
-    public void penggunaSudahMemilikiAkun() {
-        // Langkah ini biasanya bersifat asumsi data (Data Preparation).
-        // Bisa dibiarkan kosong, atau diisi log agar terbaca di report.
-        Username = "iqbal2";
-        Password = "abcdef2";
-        System.out.println("Data Preparation: Akun test sudah ada di database.");
-    }
-
-    @Given("pengguna belum memiliki akun")
-    public void penggunaBelumMemilikiAkun() {
-        System.out.println("Data Preparation: Menggunakan data akun baru.");
-    }
-
-    @And("pengguna berada di Halaman Pembuka")
-    public void penggunaBeradaDiHalamanPembuka() {
-        // (NANTI INI DIGANTI, MASIH LOCAL)
-        driver.get("http://10.0.2.2:8000"); 
-    }
-
-    // --- SCENARIO 1 & 2: INTERAKSI PILIHAN ---
     
-    // Menggunakan parameter {string} agar 1 fungsi bisa dipakai untuk 2 skenario ("Sudah punya akun" & "Belum punya akun")
-    @When("pengguna memilih opsi {string}")
-    public void penggunaMemilihOpsi(String opsi) {
-        if (opsi.equals("Sudah punya akun")) {
-            driver.findElement(By.className("btn-primary")).click(); // Ganti ID sesuai elemen aslinya
-        } else if (opsi.equals("Belum punya akun")) {
-            driver.findElement(By.className("btn-secondary")).click(); // Ganti ID sesuai elemen aslinya
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // BAGIAN DATA PREPARASI
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    
+    @Given("pengguna sudah memiliki akun yang terdaftar dan aktif")
+    public void penggunaSudahMemilikiAkunCustomer(){
+        //Akun mock yang udah lama dibuat
+        if(usernameCustomer == null){
+            usernameCustomer = "iqbaltesting";
+            System.out.println("Test login berjalan lebih dahulu sebelum daftar/register");
         }
+        
+        //Pake akun yang baru didaftarin
+        Username = usernameCustomer;
+        Password = "testing123!";
+        System.out.println("Data preparasi customer auth");
     }
-
-    // --- SCENARIO 1: FORM LOGIN ---
+    
+    @Given("pengguna belum memiliki akun")
+    public void penggunaBelumMemilikiAkun(){
+        //Kalo user gak punya akun sama sekali
+        System.out.println("User akan menggunakan data untuk registrasi akun baru");
+    }
+    
+    @Given("pengguna sudah memiliki akun yang terdaftar dan aktif dari developer")
+    public void adminSudahMempunyaiAkun(){
+        Username = "minimalist@admin.com";
+        Password = "minimalist123";
+        System.out.println("Data preparasi admin auth");
+    }
+    
+    @Given("pengguna sudah memiliki akun yang terdaftar dan aktif dari admin")
+    public void penggunaSudahMemilikiAkunCoach(){
+        //Akun mock yang udah lama dibuat coach
+        if (usernameCoach == null){
+            usernameCoach = "iqbaltest";
+        }
+        
+        Username = usernameCoach + "@coach.com";
+        Password = "test123";
+        System.out.println("Data preparasi coach auth sama dengan data registrasi");
+    }
+    
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // BAGIAN NAVIGASI DAN INTERAKSI
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    
+    @And("pengguna berada di Landing Page")
+    public void penggunaBeradaDiLandingPage(){
+        //Masih local host nanti diganti
+        driver.get("http://10.0.2.2:8000");
+    }
+    
+    @When("pengguna memilih opsi {string}")
+    public void penggunaMemilihOpsi(String opsi){
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        //Nyari teks menggunakan feature file
+        String xpathSelector = String.format("//*[contains(text(), '%s')]", opsi);
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathSelector))).click();
+    }
+    
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // INPUT FORM PADA PWA
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
     @And("pengguna memasukkan Username dan Password yang valid pada Halaman Login")
-    public void inputDataLoginValid() {
-        // Ganti locator (By.id) sesuai dengan Inspect Element di PWA kamu
+    public void inputDataLoginValid(){
         driver.findElement(By.id("username")).sendKeys(Username);
         driver.findElement(By.id("password")).sendKeys(Password);
     }
-
-    // --- SCENARIO 2: FORM REGISTER ---
-
+    
     @And("pengguna memasukkan Username, Nomer telpon, dan Password yang valid pada Halaman Register")
-    public void inputDataRegisterValid() {
-        driver.findElement(By.id("username")).sendKeys("iqbalTestE2E234");
+    public void inputDataRegisterCustomerValid(){
+        usernameCustomer = "iqbaltesting" + rand.nextInt(1000);
+        driver.findElement(By.id("username")).sendKeys(usernameCustomer);
         driver.findElement(By.name("phone")).sendKeys("081234567890");
         driver.findElement(By.id("password")).sendKeys("testing123!");
     }
-
-    // --- SCENARIO 1 & 2: SUBMIT BUTTON ---
-
+    
+    @And("pengguna mengisi nama coach, keahlian, nomor hp, deskripsi, rate per kelas, pengalaman tahun dan password")
+    public void inputDataCoachBaru(){
+        usernameCoach = "iqbaltesting" + rand.nextInt(1000);
+        //Rate coach random dan +1 biar gak 0 ratenya
+        int rateCoach = (rand.nextInt(10000) + 1) * 1000;
+        
+        driver.findElement(By.name("name")).sendKeys(usernameCoach);
+        driver.findElement(By.name("specialization")).sendKeys("Yoga Biasa");
+        driver.findElement(By.name("phone")).sendKeys("089988887777");
+        driver.findElement(By.name("bio")).sendKeys("Instruktur yoga bersertifikat dengan pengalaman internasional. passnya:test123");
+        driver.findElement(By.name("rate_per_class")).sendKeys(Integer.toString(rateCoach));
+        driver.findElement(By.name("years_experience")).sendKeys("5");
+        driver.findElement(By.name("password")).sendKeys("test123");
+        
+        System.out.println("Berhasil tambah coach!");
+    }
+    
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // TOMBOL DAN TAB PWA
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    
     @And("pengguna menekan tombol {string}")
     public void penggunaMenekanTombol(String namaTombol) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        String xpathSelector = "";
 
-        // Kita buat logic untuk menyesuaikan teks di Gherkin dengan teks di HTML
-        String teksTombolHtml = "";
-
-        if (namaTombol.equalsIgnoreCase("Login")) {
-            teksTombolHtml = "Masuk";
-        } else if (namaTombol.equalsIgnoreCase("Register")) {
-            teksTombolHtml = "Buat Akun";
+        // Jika tombolnya selain login dan regist pake class aja, pake enum kalo button lain gini juga
+        if (namaTombol.equalsIgnoreCase("Tambah Coach")) {
+            xpathSelector = "//button[contains(@class, 'btn-tambah-coach')]";
         } else {
-            teksTombolHtml = namaTombol;
+            // Tombol lain tetep dicari berdasarkan text
+            xpathSelector = String.format("//button[contains(., '%s')]", namaTombol);
         }
-
-        // XPath ini akan mencari <button> yang berisi teks sesuai variabel teksTombolHtml
-        String xpathSelector = String.format("//button[contains(text(), '%s')]", teksTombolHtml);
 
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathSelector))).click();
     }
+    
+    @And("pengguna menekan tombol {string} lagi")
+    public void penggunaMenekanTombolLagi(String tombolLama){
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        // Menggunakan tag 'a' atau semacamnya sesuai struktur navigasi tab PWA kamu
+        String xpathSelector = String.format("//button[contains(@class, 'btn-modal-submit')]", tombolLama);
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathSelector))).click();
+    }
+    
+    @And("pengguna menekan tab {string}")
+    public void penggunaMenekanTab(String namaTab) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        // Menggunakan tag 'a' atau semacamnya sesuai struktur navigasi tab PWA kamu
+        String xpathSelector = String.format("//a[contains(., '%s')]", namaTab);
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathSelector))).click();
+    }
+    
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // BAGIAN VERIFIKASI PER SKENARIO
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    
+    // Skenario 1: Dashboard Customer
+    @And("^pengguna diarahkan ke halaman utama \\(Dashboard\\)$")
+    public void penggunaDiarahkanKeDashboardCustomer() {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        // Ganti 'card-promo' dengan elemen unik di dashboard customer
+        boolean isDashboardMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("card-promo"))).isDisplayed();
+        Assert.assertTrue("Gagal masuk ke dashboard customer!", isDashboardMuncul);
+    }
 
-    // --- SCENARIO 2: VERIFIKASI NOTIFIKASI ---
+    // Skenario 3 & 4: Dashboard Admin
+    @Then("^pengguna diarahkan ke halaman utama admin \\(Dashboard\\)$")
+    public void penggunaDiarahkanKeDashboardAdmin() {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        // Ganti dengan elemen unik di dashboard admin
+        boolean isAdminMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("btn-tambah-member"))).isDisplayed();
+        Assert.assertTrue("Gagal masuk ke dashboard admin!", isAdminMuncul);
+    }
 
-    // AuthSteps.java baris 139
+    // Skenario 5: Dashboard Coach
+    @Then("^pengguna diarahkan ke halaman utama coach \\(Dashboard\\)$")
+    public void penggunaDiarahkanKeDashboardCoach() {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        // Ganti dengan elemen unik di dashboard coach
+        boolean isCoachMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("coach-content"))).isDisplayed();
+        Assert.assertTrue("Gagal masuk ke dashboard coach!", isCoachMuncul);
+    }
+
+    // Verifikasi Notifikasi (Registrasi Customer & Tambah Coach)
     @Then("sistem menampilkan notifikasi {string}")
     public void sistemMenampilkanNotifikasi(String expectedMessage) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
 
-        // Cari elemen toast/notifikasi yang muncul
+        // Cari elemen toast/notifikasi (Pastikan class 'alert-success' atau class sejenisnya benar)
         WebElement notification = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("alert-success"))); 
         
         String actualMessage = notification.getText();
-
-        // Gunakan assertTrue dengan pesan yang lebih informatif
         Assert.assertTrue("Notifikasi tidak sesuai! Munculnya: " + actualMessage, 
-                           actualMessage.contains("Akun berhasil dibuat") || actualMessage.equals(expectedMessage));
-    }
-
-    // --- SCENARIO 1: VERIFIKASI DASHBOARD ---
-
-    @And("pengguna diarahkan ke halaman utama \\(Dashboard)")
-    public void penggunaDiarahkanKeDashboard() {
-        // Cara terbaik memastikan pindah halaman adalah mengecek elemen khas di halaman Dashboard
-        // Misalnya judul halaman atau menu navigasi
-        boolean isDashboardMuncul = driver.findElement(By.className("card-promo")).isDisplayed();
-        Assert.assertTrue("Gagal masuk ke dashboard!", isDashboardMuncul);
+                          actualMessage.contains(expectedMessage));
     }
     
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // BUBARIN SESSION
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     @After
     public void tearDown() {
         if (driver != null) {

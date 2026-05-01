@@ -10,6 +10,7 @@ import io.cucumber.junit.CucumberOptions;
 import org.junit.runner.RunWith;
 
 @RunWith(Cucumber.class)
+//Setup cucumber
 @CucumberOptions(
     features = "src/test/resources/features", // Lokasi file feature
     glue = "com.TA.steps",                    // Lokasi step definitions
@@ -20,5 +21,5 @@ import org.junit.runner.RunWith;
  * @author M.Iqbal Nurhaq
  */
 public class Runner {
-    
+    //dummy public class
 }

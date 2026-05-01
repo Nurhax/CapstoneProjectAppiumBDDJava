@@ -73,10 +73,10 @@ Skenario pengujian mencakup:
 ---
 
 ## 👨‍💻 Penulis
-* **Nama**: [Isi Nama Lengkap Kamu]
+* **Nama**: Muhammad Iqbal Nurhaq
 * **NIM**: 130223050
 * **Prodi**: S1 Informatika - Telkom University
-* **LinkedIn**: [Isi Link LinkedIn Kamu]
+* **LinkedIn**: https://www.linkedin.com/in/muhammad-iqbal-nurhaq-99b2a1297/
 
 ---
 

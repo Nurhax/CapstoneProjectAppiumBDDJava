@@ -126,13 +126,13 @@ public class AuthSteps {
     // INPUT FORM PADA PWA
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-    @And("pengguna memasukkan Username dan Password yang valid pada Halaman Login")
+    @And("pengguna memasukkan username dan password yang valid pada halaman login")
     public void inputDataLoginValid(){
         driver.findElement(By.id("username")).sendKeys(Username);
         driver.findElement(By.id("password")).sendKeys(Password);
     }
     
-    @And("pengguna memasukkan Username, Nomer telpon, dan Password yang valid pada Halaman Register")
+    @And("pengguna memasukkan username, nomer telpon, dan password yang valid pada halaman register")
     public void inputDataRegisterCustomerValid(){
         usernameCustomer = "iqbaltesting" + rand.nextInt(1000);
         driver.findElement(By.id("username")).sendKeys(usernameCustomer);

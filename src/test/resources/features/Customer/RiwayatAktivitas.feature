@@ -8,6 +8,6 @@ Feature: Riwayat Booking dan Aktivitas
   Scenario: Customer melihat riwayat kelas (FR14)
     Given customer sudah login dan berada di halaman home
     When customer menekan tab "Aktivitas"
-    Then sistem mengarahkan customer ke halaman riawayat booking customer
+    Then sistem mengarahkan customer ke halaman riwayat booking customer
     And customer melihat teks "Aktivitas Anda" berupa jadwal yang akan dilakukan hari ini
     And customer melihat teks "Riwayat Aktivitas" berupa riwayat aktivitas yang telah lewat

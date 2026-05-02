@@ -6,7 +6,7 @@ Feature: Manajemen Profil Pribadi Customer
 
   @TC-11 @FR-19
   Scenario: Customer berhasil memperbarui data profil (FR19)
-    Given customer sudah login dan berada di halaman home
+    Given customer sudah login dengan akun berbeda dan berada di halaman home
     And customer menekan tab "Profil"
     When customer menekan tombol Edit Username
     And customer mengubah nama menjadi "Iqbal updated"

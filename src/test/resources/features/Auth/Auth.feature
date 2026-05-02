@@ -9,7 +9,7 @@ Feature: User Authentication
     Given pengguna belum memiliki akun
     And pengguna berada di landing page
     When pengguna memilih opsi "Register"
-    And pengguna memasukkan username, nomer telpon, dan password yang valid pada halaman register
+    And pengguna memasukkan nama lengkap, username, nomer telpon, dan password yang valid pada halaman register
     And pengguna menekan tombol "Buat Akun"
     Then sistem menampilkan notifikasi "Akun berhasil dibuat! Silakan login."
 

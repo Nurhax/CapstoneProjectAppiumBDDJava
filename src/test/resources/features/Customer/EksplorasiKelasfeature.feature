@@ -11,10 +11,10 @@ Feature: Eksplorasi Kelas dan Coach
     Then sistem menampilkan daftar jadwal kelas yoga yang tersedia
 
   @TC-07 @FR-05
-  Scenario: Customer Menggunakan Filter Saat Mencari Kelas Di Halaman Home (FR05)
+  Scenario: Customer menggunakan filter saat mencari kelas di halaman home (FR05)
     Given customer sudah login dan berada di halaman Home
     And customer menekan tab "Home"
-    When customer memilih filter "Yoga" pada tombol "Kelas"
+    When customer memilih filter "Yin Yoga" pada tombol "Kelas"
     And customer memilih filter "Senin" pada tombol "Waktu"
     And customer memilih filter "iqbalu" pada tombol "Coach"
     Then sistem hanya menampilkan daftar kelas yang sesuai dengan filter yang diterapkan
@@ -26,7 +26,7 @@ Feature: Eksplorasi Kelas dan Coach
     When customer memilih filter "Starter Pack" pada tombol "Kelas"
     #And customer memilih filter "Senin" pada tombol "Waktu" (belum ada)
     #And customer memilih filter "iqbalu" pada tombol "Coach" (belum ada) 
-    Then sistem hanya menampilkan daftar membership yang sesuai dengan filter yang diterapkan
+    Then sistem hanya menampilkan daftar kelas yang sesuai dengan filter yang diterapkan
 
   @TC-09 @FR-18
   Scenario: Customer melihat profil detail seorang Coach di halaman home (FR18)

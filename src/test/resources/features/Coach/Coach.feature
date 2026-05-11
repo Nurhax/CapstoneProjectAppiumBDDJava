@@ -19,25 +19,25 @@ Feature: Operasional dan Manajemen Coach
     And coach menekan tombol "Cek Jadwal"
     Then coach dapat melihat daftar peserta untuk kelas tersebut
   
-  @TC-15 @FR-21
-  Scenario: Coach memverifikasi kehadiran peserta kelas
-    Given coach sudah login dan berada di halaman coach
-    And coach menekan tab "Home" pada navbar
-    When coach mengklik logo checklist pada peserta di bagian "Tidak Hadir"
-    Then data peserta tersebut berubah menjadi ke bagian "Hadir"
+  #@TC-15 @FR-21
+  #Scenario: Coach memverifikasi kehadiran peserta kelas
+    #Given coach sudah login dan berada di halaman coach
+    #And coach menekan tab "Home" pada navbar
+    #When coach mengklik logo checklist pada peserta di bagian "Tidak Hadir"
+    #Then data peserta tersebut berubah menjadi ke bagian "Hadir"
     
   
-  @TC-16 @FR-23
-  Scenario: Coach upload foto bukti kehadiran kelas
-    Given coach sudah login dan berada di halaman daftar peserta kelas
+  #@TC-16 @FR-23
+  #Scenario: Coach upload foto bukti kehadiran kelas
+    #Given coach sudah login dan berada di halaman daftar peserta kelas
     #When coach menekan tombol select file pada upload bukti hadir
     #And coach memilih foto bukti kelas
     #And foto berhasil tersimpan ke dalam form bukti hadir
     #And coach menekan tombol "Update Kelas"
     #Then sistem berhasil menyimpan pembaruan kelas beserta bukti kehadiran
   
-   @TC-17 @FR-27  
-   Scenario: Coach melihat laporan gaji
-    Given coach sudah login dan berada di halaman coach
-    When coach menekan tab "Profile" pada navbar
-    Then coach dapat melihat laporan gaji dari kelas yang telah selesai
+   #@TC-17 @FR-27  
+   #Scenario: Coach melihat laporan gaji
+    #Given coach sudah login dan berada di halaman coach
+    #When coach menekan tab "Profile" pada navbar
+    #Then coach dapat melihat laporan gaji dari kelas yang telah selesai

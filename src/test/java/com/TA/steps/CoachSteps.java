@@ -26,7 +26,7 @@ public class CoachSteps {
         try {
             wait.until(ExpectedConditions.elementToBeClickable(By.className("btn-primary"))).click();
             WebElement userField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));
-            userField.sendKeys("iqbalu"); 
+            userField.sendKeys("iqbaltest@coach.com"); 
             SetupSteps.driver.findElement(By.id("password")).sendKeys("test123");
             SetupSteps.driver.findElement(By.className("btn-submit")).click();
         } catch (Exception e) {
@@ -54,27 +54,27 @@ public class CoachSteps {
 
     @Then("coach dapat melihat jadwal kelas yang harus diajar hari ini")
     public void coachMelihatJadwalHariIni() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         boolean isJadwalVisible = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("coach-schedule-container"))).isDisplayed();
         Assert.assertTrue("Jadwal mengajar Coach tidak ditemukan!", isJadwalVisible);
     }
 
     @When("coach memilih jadwal kelas yang tersedia hari ini")
     public void coachMemilihJadwal() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         wait.until(ExpectedConditions.elementToBeClickable(By.className("card-class"))).click();
     }
 
     @And("coach menekan tombol {string}")
     public void coachMenekanTombol(String namaTombol) {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         String xpath = String.format("//button[contains(normalize-space(), '%s')] | //a[contains(normalize-space(), '%s')]", namaTombol, namaTombol);
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
     }
 
     @Then("coach dapat melihat daftar peserta untuk kelas tersebut")
     public void coachMelihatDaftarPeserta() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         boolean isListVisible = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("participant-list"))).isDisplayed();
         Assert.assertTrue("Daftar peserta tidak muncul!", isListVisible);
     }

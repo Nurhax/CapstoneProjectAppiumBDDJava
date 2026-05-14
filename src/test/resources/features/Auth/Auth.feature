@@ -31,7 +31,7 @@ Feature: User Authentication
     And pengguna menekan tombol "Masuk"
     Then pengguna diarahkan ke halaman utama admin (Dashboard)
   
-  @TC-03 @FR-16
+  @TC-04 @FR-16
   Scenario: Pengguna Berhasil Mendaftarkan Coach Baru (FR-16)
     Given pengguna sudah memiliki akun yang terdaftar dan aktif dari developer
     And pengguna berada di landing page

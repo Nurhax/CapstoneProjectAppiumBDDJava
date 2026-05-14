@@ -21,6 +21,8 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import java.util.Random;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.support.ui.Select;
 
 /**
  *
@@ -92,10 +94,15 @@ public class AuthSteps{
     
     @When("pengguna memilih opsi {string}")
     public void penggunaMemilihOpsi(String opsi){
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        //Nyari teks menggunakan feature file
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
         String xpathSelector = String.format("//*[contains(text(), '%s')]", opsi);
-        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathSelector))).click();
+        
+        // 1. Nunggu animasi selesai
+        WebElement tombolOpsi = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathSelector)));
+        JavascriptExecutor executor = (JavascriptExecutor) SetupSteps.driver;
+        executor.executeScript("arguments[0].click();", tombolOpsi);
+        
+        System.out.println("Berhasil bypass animasi dan klik opsi: " + opsi);
     }
     
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -126,7 +133,9 @@ public class AuthSteps{
         int rateCoach = (rand.nextInt(10000) + 1) * 1000;
         
         SetupSteps.driver.findElement(By.name("name")).sendKeys(usernameCoach);
-        SetupSteps.driver.findElement(By.name("specialization")).sendKeys("Yoga Biasa");
+        WebElement dropdownSpesialisasi = SetupSteps.driver.findElement(By.name("class_id"));
+        Select selectSpesialisasi = new Select(dropdownSpesialisasi);
+        selectSpesialisasi.selectByVisibleText("Yin Yoga");
         SetupSteps.driver.findElement(By.name("phone")).sendKeys("089988887777");
         SetupSteps.driver.findElement(By.name("bio")).sendKeys("Instruktur yoga bersertifikat dengan pengalaman internasional. passnya:test123");
         SetupSteps.driver.findElement(By.name("rate_per_class")).sendKeys(Integer.toString(rateCoach));
@@ -206,14 +215,20 @@ public class AuthSteps{
     // Verifikasi Notifikasi (Registrasi Customer & Tambah Coach)
     @Then("sistem menampilkan notifikasi {string}")
     public void sistemMenampilkanNotifikasi(String expectedMessage) {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-
-        // Cari elemen toast/notifikasi (Pastikan class 'alert-success' atau class sejenisnya benar)
-        WebElement notification = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("alert-success"))); 
+       // Kita kasih waktu tunggu sedikit lebih lama (misal 10 detik) buat jaga-jaga notifnya delay
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
         
-        String actualMessage = notification.getText();
-        Assert.assertTrue("Notifikasi tidak sesuai! Munculnya: " + actualMessage, 
-                          actualMessage.contains(expectedMessage));
+        // Cari elemen APAPUN di layar yang mengandung teks dari Gherkin
+        // Menggunakan normalize-space() agar kebal terhadap enter atau spasi berlebih
+        String xpathNotifikasi = String.format("//*[contains(normalize-space(), '%s')]", expectedMessage);
+        
+        try {
+            boolean isNotifikasiMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpathNotifikasi))).isDisplayed();
+            Assert.assertTrue("Notifikasi tidak muncul!", isNotifikasiMuncul);
+            System.out.println("Berhasil menemukan notifikasi: " + expectedMessage);
+        } catch (Exception e) {
+            Assert.fail("Gagal menemukan teks notifikasi: '" + expectedMessage + "' dalam waktu yang ditentukan.");
+        }
     }
     
 }

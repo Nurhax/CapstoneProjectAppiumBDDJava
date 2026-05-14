@@ -4,7 +4,7 @@ Feature: Eksplorasi Kelas dan Coach
   Saya ingin melihat jadwal, memfilter kelas, dan melihat profil coach
   Agar saya bisa memilih kelas yoga yang sesuai sebelum melakukan booking
     
-  @TC-06 @FR-17
+  @TC-06 @FR-04
   Scenario: Customer Melihat Daftar Jadwal Kelas Yoga Yang Tersedia Di Halaman Home(FR04)
     Given customer sudah login dan berada di halaman Home
     When customer menekan tab "Home"
@@ -15,7 +15,7 @@ Feature: Eksplorasi Kelas dan Coach
     Given customer sudah login dan berada di halaman Home
     And customer menekan tab "Home"
     When customer memilih filter "Yin Yoga" pada tombol "Kelas"
-    And customer memilih filter "Senin" pada tombol "Waktu"
+    And customer memilih filter "Kamis" pada tombol "Waktu"
     And customer memilih filter "iqbalu" pada tombol "Coach"
     Then sistem hanya menampilkan daftar kelas yang sesuai dengan filter yang diterapkan
 
@@ -24,9 +24,8 @@ Feature: Eksplorasi Kelas dan Coach
     Given customer sudah login dan berada di halaman Home
     And customer menekan tab "Member"
     When customer memilih filter "Starter Pack" pada tombol "Kelas"
-    #And customer memilih filter "Senin" pada tombol "Waktu" (belum ada)
-    #And customer memilih filter "iqbalu" pada tombol "Coach" (belum ada) 
     Then sistem hanya menampilkan daftar kelas yang sesuai dengan filter yang diterapkan
+    #Gak ada filter waktu dan coach karena jatohnya seperti voucher    
 
   @TC-09 @FR-18
   Scenario: Customer melihat profil detail seorang Coach di halaman home (FR18)
@@ -36,6 +35,4 @@ Feature: Eksplorasi Kelas dan Coach
     And customer menekan foto profil coach pada kelas yang dilihat
     Then sistem menampilkan halaman informasi detail profil coach tersebut
 
-  #@TC-10 @FR-19
-  #Scenario: Customer melihat profil detail seorang Coach di halaman membership (FR18) (belum ada)
     

@@ -4,7 +4,7 @@ Feature: Riwayat Booking dan Aktivitas
   Saya ingin melihat daftar kelas yang sudah saya pesan
   Agar saya bisa memantau jadwal yoga yang harus saya ikuti
 
-  @TC-12 @FR-14
+  @TC-11 @FR-14
   Scenario: Customer melihat riwayat kelas (FR14)
     Given customer sudah login dan berada di halaman home
     When customer menekan tab "Aktivitas"

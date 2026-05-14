@@ -19,7 +19,7 @@ public class CoachSteps {
 
     @Given("^coach sudah login dan berada di halaman coach$")
     public void coachSudahLogin() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         
         SetupSteps.driver.get("http://10.0.2.2:8000");
         
@@ -43,7 +43,7 @@ public class CoachSteps {
 
     @When("coach menekan tab {string} pada navbar")
     public void coachMenekanTabNavbar(String namaTab) {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         String xpath = String.format("//a[contains(normalize-space(), '%s')]", namaTab);
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
     }
@@ -91,7 +91,7 @@ public class CoachSteps {
 
     @When("coach mengklik logo checklist pada peserta di bagian {string}")
     public void klikChecklistPeserta(String status) {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         String xpath = String.format("//div[contains(@id, 'not-present')]//button[contains(@class, 'btn-check')]");
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
     }
@@ -129,7 +129,7 @@ public class CoachSteps {
 
     @Then("sistem berhasil menyimpan pembaruan kelas beserta bukti kehadiran")
     public void sistemSimpanUpdate() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         boolean isSuccess = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("alert-success"))).isDisplayed();
         Assert.assertTrue("Gagal mengupdate kelas!", isSuccess);
     }
@@ -141,7 +141,7 @@ public class CoachSteps {
     // Teks disesuaikan dengan feature file yang baru
     @Then("coach dapat melihat laporan gaji dari kelas yang telah selesai")
     public void coachMelihatLaporanGaji() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         WebElement salaryTable = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("salary-report-table")));
         Assert.assertTrue("Laporan gaji tidak ditemukan di halaman profil!", salaryTable.isDisplayed());
     }

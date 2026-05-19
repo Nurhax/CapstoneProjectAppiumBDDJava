@@ -94,7 +94,7 @@ public class AuthSteps{
     
     @When("pengguna memilih opsi {string}")
     public void penggunaMemilihOpsi(String opsi){
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         String xpathSelector = String.format("//*[contains(text(), '%s')]", opsi);
         
         // 1. Nunggu animasi selesai
@@ -216,7 +216,7 @@ public class AuthSteps{
     @Then("sistem menampilkan notifikasi {string}")
     public void sistemMenampilkanNotifikasi(String expectedMessage) {
        // Kita kasih waktu tunggu sedikit lebih lama (misal 10 detik) buat jaga-jaga notifnya delay
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         
         // Cari elemen APAPUN di layar yang mengandung teks dari Gherkin
         // Menggunakan normalize-space() agar kebal terhadap enter atau spasi berlebih

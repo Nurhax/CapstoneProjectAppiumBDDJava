@@ -8,9 +8,9 @@ Feature: Manajemen Profil Pribadi Customer
   Scenario: Customer berhasil memperbarui data profil (FR19)
     Given customer sudah login dengan akun berbeda dan berada di halaman home
     And customer menekan tab "Profil"
-    When customer menekan tombol Edit Username
-    And customer mengubah nama menjadi "Iqbalupdated"
-    And customer menekan tombol Save Username
+    When customer menekan tombol Edit Nama Lengkap
+    And customer mengubah nama menjadi "Iqbal updated"
+    And customer menekan tombol Save Nama Lengkap
     And customer menekan tombol Edit Nomer HP
     And customer mengubah Nomer HP menjadi "08111222333"
     And customer menekan tombol Save Nomer HP

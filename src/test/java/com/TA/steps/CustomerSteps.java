@@ -33,6 +33,8 @@ public class CustomerSteps{
     public static String expectedFilterValue;
     public static List<String> bookedClasses = new ArrayList<>();
     public static String expectedClassName = "";
+    public static String updatedName;
+    public static String updatedPhone;
     
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     // BAGIAN DATA PREPARASI
@@ -41,7 +43,7 @@ public class CustomerSteps{
     @Given("customer sudah login dengan akun berbeda dan berada di halaman home")
     public void customerSudahLoginDenganAkunBerbeda(){
         // Naikkan jadi 10 detik biar lebih aman untuk nungguin animasi
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
 
         // 1. Buka URL utama
@@ -55,7 +57,7 @@ public class CustomerSteps{
         WebElement usernameInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));
         
         // Pastikan isi dengan username akun keduamu
-        usernameInput.sendKeys("nurhax2"); 
+        usernameInput.sendKeys("nurhax6"); 
 
         // 4. Masukkan password
         SetupSteps.driver.findElement(By.id("password")).sendKeys("test123");
@@ -72,7 +74,7 @@ public class CustomerSteps{
     
     @Given("^customer sudah login dan berada di halaman [Hh]ome$")
     public void customerSudahLogin() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
 
         // 1. Buka URL utama
@@ -84,7 +86,7 @@ public class CustomerSteps{
 
         // 3. JEDA KRITIS: Tunggu sampai kolom username benar-benar muncul dan siap diketik
         WebElement usernameInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));
-        usernameInput.sendKeys("nurhax");
+        usernameInput.sendKeys("nurhax5");
 
         // 4. Masukkan password
         SetupSteps.driver.findElement(By.id("password")).sendKeys("test123");
@@ -101,7 +103,7 @@ public class CustomerSteps{
     
     @And("customer menekan tab {string}")
     public void customerMenekanTab(String namaTab){
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
 
         // 1. JURUS BRUTAL: Hapus paksa elemen animasi kalau dia tiba-tiba muncul lagi
@@ -204,7 +206,7 @@ public class CustomerSteps{
     @Then("sistem menampilkan halaman informasi detail profil coach tersebut")
     public void sistemMenampilkanDetailCoach() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        boolean isDetailCoachMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("coach-badge-link"))).isDisplayed();
+        boolean isDetailCoachMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("coach-hero-name"))).isDisplayed();
         Assert.assertTrue("Gagal membuka detail coach!", isDetailCoachMuncul);
     }
     
@@ -241,24 +243,25 @@ public class CustomerSteps{
     // MODUL MANAJEMEN PROFIL (FR19)
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     
-    @When("customer menekan tombol Edit Username")
+    @When("customer menekan tombol Edit Nama Lengkap")
     public void customerMenekanTombolEditUsername() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        String xpath = "//div[contains(@class, 'info-row-left') and contains(., 'Username')]/following-sibling::button[contains(@class, 'edit-btn')]";
+        String xpath = "//div[contains(@class, 'info-row-left') and contains(., 'Nama Lengkap')]/following-sibling::button[contains(@class, 'edit-btn')]";
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
     }
 
     @And("customer mengubah nama menjadi {string}")
     public void customerMengubahNama(String namaBaru) {
+        updatedName = namaBaru;
         WebElement inputNama = SetupSteps.driver.findElement(By.name("name"));
         inputNama.clear();
         inputNama.sendKeys(namaBaru);
     }
 
-    @And("customer menekan tombol Save Username")
+    @And("customer menekan tombol Save Nama Lengkap")
     public void customerMenekanTombolSaveUsername() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        String xpath = "//div[contains(@class, 'info-row-left') and contains(., 'Username')]/following-sibling::button[contains(@class, 'save-btn')]";
+        String xpath = "//div[contains(@class, 'info-row-left') and contains(., 'Nama Lengkap')]/following-sibling::button[contains(@class, 'save-btn')]";
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
     }
 
@@ -271,6 +274,7 @@ public class CustomerSteps{
 
     @And("customer mengubah Nomer HP menjadi {string}")
     public void customerMengubahNomerHP(String hpBaru) {
+        updatedPhone = hpBaru;
         WebElement inputHp = SetupSteps.driver.findElement(By.name("phone_number"));
         inputHp.clear();
         inputHp.sendKeys(hpBaru);
@@ -308,9 +312,63 @@ public class CustomerSteps{
     @Then("data profil customer berubah sesuai dengan inputan yang baru")
     public void dataProfilCustomerBerubah() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        // Validasi toast success atau perubahan teks pada UI profil
-        boolean isSuccess = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("alert-success"))).isDisplayed();
-        Assert.assertTrue("Profil gagal diperbarui!", isSuccess);
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+
+        try {
+            // 1. JURUS BYPASS: Hapus paksa animasi splash screen biar gak menghalangi UI profil asli
+            try {
+                js.executeScript("var splash = document.getElementById('splash-circle'); if(splash) { splash.remove(); }");
+                js.executeScript("var spinner = document.getElementById('splash-spinner'); if(spinner) { spinner.remove(); }");
+                Thread.sleep(1000); // Kasih jeda sedetik agar halaman stabil setelah animasi dihapus
+            } catch (Exception e) {
+                // Cuekin aja kalau animasinya memang sudah tidak ada
+            }
+
+            // 2. SANITY CHECK: Pastikan variabel global penampung data barumu tidak kosong
+            // (Sesuaikan updatedName & updatedPhone dengan variabel yang kamu isi di step @When mengisi form)
+            Assert.assertFalse("Variabel updatedName kosong! Periksa step mengisi form.", updatedName.isEmpty());
+            Assert.assertFalse("Variabel updatedPhone kosong! Periksa step mengisi form.", updatedPhone.isEmpty());
+
+            System.out.println("--- MEMULAI VALIDASI PROFIL ---");
+            System.out.println("Mencari Nama Baru: " + updatedName);
+
+            // =========================================================================
+            // LAKUKAN VALIDASI NAMA LENGKAP
+            // =========================================================================
+            String nameLower = updatedName.toLowerCase();
+            String xpathNama = String.format("//*[contains(translate(normalize-space(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '%s')]", nameLower);
+            
+            WebElement elementNama = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpathNama)));
+            Assert.assertTrue("Gawat! Nama baru tidak kelihatan di halaman profil!", elementNama.isDisplayed());
+            System.out.println("Nama berhasil divalidasi: " + elementNama.getText());
+
+
+            // =========================================================================
+            // LAKUKAN VALIDASI NOMOR HP (ANTI-GAGAL: POTONG 4 ANGKA TERAKHIR)
+            // =========================================================================
+            String stringHp = updatedPhone.trim();
+            // Ambil 4 angka paling belakang (misal '08111222333' -> cuma diambil '2333')
+            String empatAngkaTerakhir = stringHp.substring(Math.max(0, stringHp.length() - 4));
+            System.out.println("Mencari Nomor HP menggunakan potongan digit belakang: " + empatAngkaTerakhir);
+
+            // XPath ini mencari teks biasa ATAU isi atribut value di dalam kotak input yang mengandung 4 angka tersebut
+            String xpathPhoneSakti = String.format(
+                "//*[contains(text(), '%s')] | //input[contains(@value, '%s')]", 
+                empatAngkaTerakhir, empatAngkaTerakhir
+            );
+
+            WebElement elementPhone = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpathPhoneSakti)));
+            Assert.assertTrue("Gawat! Nomor HP baru tidak kelihatan di halaman profil!", elementPhone.isDisplayed());
+            
+            // Cara ambil teksnya: Kalau teks biasa kosong, berarti dia ngumpet di dalam atribut value (input box)
+            String teksHpDiUI = elementPhone.getText().isEmpty() ? elementPhone.getAttribute("value") : elementPhone.getText();
+            System.out.println("Nomor HP berhasil divalidasi. Tercatat di UI: " + teksHpDiUI);
+
+            System.out.println("STATUS: VALIDASI SUKSES (HIJAU)! Semua data berubah sesuai inputan.");
+
+        } catch (Exception e) {
+            Assert.fail("Gagal memvalidasi perubahan profil di UI. Kemungkinan elemen tidak ditemukan. Error: " + e.getMessage());
+        }
     }
     
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -319,7 +377,7 @@ public class CustomerSteps{
 
     @When("customer memilih jadwal kelas yoga yang tersedia")
     public void customerPilihKelasTersedia() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
 
         // --- BERSIHKAN ANIMASI SEBELUM MULAI ---
@@ -451,7 +509,7 @@ public class CustomerSteps{
 
     @And("customer melakukan proses pembayaran")
     public void customerLakukanPembayaran() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10)); // Waktu tunggu sedikit dipanjangkan karena ada transisi ke Xendit
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5)); // Waktu tunggu sedikit dipanjangkan karena ada transisi ke Xendit
         JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
 
         try {
@@ -482,6 +540,11 @@ public class CustomerSteps{
             // Klik paksa pakai JS
             js.executeScript("arguments[0].click();", btnGopay);
             System.out.println("Metode GoPay berhasil dipilih!");
+            
+            //Pencet pay-btn lagi
+            WebElement btnLanjutPembayaranLagi = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("pay-btn")));
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnLanjutPembayaranLagi);
+            js.executeScript("arguments[0].click();", btnLanjutPembayaranLagi);
 
             // 3. Mencet tombol Proceed to Pay
             System.out.println("Mencari tombol Proceed to Pay...");
@@ -502,7 +565,12 @@ public class CustomerSteps{
             // 4. Tunggu proses redirect (biasanya Xendit butuh waktu buat memproses simulasi)
             System.out.println("Menunggu pengalihan ke halaman sukses...");
             Thread.sleep(3000);
-
+            
+            //Klik btn selesai
+            WebElement btnSelesai = wait.until(ExpectedConditions.presenceOfElementLocated(By.className("btn-selesai")));
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnSelesai);
+            js.executeScript("arguments[0].click();", btnSelesai);
+            
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             Assert.fail("Proses terinterupsi saat menunggu redirect: " + e.getMessage());

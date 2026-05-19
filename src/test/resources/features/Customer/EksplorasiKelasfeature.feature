@@ -14,16 +14,16 @@ Feature: Eksplorasi Kelas dan Coach
   Scenario: Customer menggunakan filter saat mencari kelas di halaman home (FR05)
     Given customer sudah login dan berada di halaman Home
     And customer menekan tab "Home"
-    When customer memilih filter "Yin Yoga" pada tombol "Kelas"
-    And customer memilih filter "Kamis" pada tombol "Waktu"
-    And customer memilih filter "iqbalu" pada tombol "Coach"
+    When customer memilih filter "Hatha Yoga" pada tombol "Kelas"
+    And customer memilih filter "Senin" pada tombol "Waktu"
+    And customer memilih filter "Raphaeltest1" pada tombol "Coach"
     Then sistem hanya menampilkan daftar kelas yang sesuai dengan filter yang diterapkan
 
   @TC-08 @FR-05
   Scenario: Customer menggunakan filter saat mencari membership di halaman member (FR05)
     Given customer sudah login dan berada di halaman Home
     And customer menekan tab "Member"
-    When customer memilih filter "Starter Pack" pada tombol "Kelas"
+    When customer memilih filter "Hatha Yoga" pada tombol "Kelas"
     Then sistem hanya menampilkan daftar kelas yang sesuai dengan filter yang diterapkan
     #Gak ada filter waktu dan coach karena jatohnya seperti voucher    
 

@@ -16,15 +16,15 @@ Feature: Operasional dan Manajemen Coach
     Given coach sudah login dan berada di halaman coach
     And coach menekan tab "Home" pada navbar
     When coach memilih jadwal kelas yang tersedia hari ini
-    And coach menekan tombol "Cek Jadwal"
     Then coach dapat melihat daftar peserta untuk kelas tersebut
   
-  #@TC-15 @FR-21
-  #Scenario: Coach memverifikasi kehadiran peserta kelas
-    #Given coach sudah login dan berada di halaman coach
-    #And coach menekan tab "Home" pada navbar
-    #When coach mengklik logo checklist pada peserta di bagian "Tidak Hadir"
-    #Then data peserta tersebut berubah menjadi ke bagian "Hadir"
+  @TC-15 @FR-21
+  Scenario: Coach memverifikasi kehadiran peserta kelas
+    Given coach sudah login dan berada di halaman coach
+    And coach menekan tab "Home" pada navbar
+    And coach menekan tombol "Cek Jadwal"
+    When coach mengklik logo checklist pada peserta di bagian "Tidak Hadir"
+    Then data peserta tersebut berubah menjadi ke bagian "Hadir"
     
   
   #@TC-16 @FR-23

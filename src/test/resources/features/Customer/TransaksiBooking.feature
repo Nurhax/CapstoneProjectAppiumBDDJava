@@ -12,3 +12,12 @@ Feature: Booking dan Pembayaran Kelas Yoga
     And customer melakukan proses pembayaran
     And customer menekan tab "Aktivitas"
     Then jadwal kelas yang dipesan akan muncul di halaman aktivitas
+
+  @TC-18 @FR-08 @FR-09
+  Scenario: Customer berhasil booking dengan kuota membership kelas
+    Given customer sudah login dan berada di halaman home
+    When customer membeli membership untuk kelas "Hatha Yoga" pada tab "Member"
+    And customer memilih jadwal kelas yoga yang sesuai dengan membershipnya pada tab "Home"
+    And customer menekan tombol "Ya" ketika diingatkan memiliki kuota membership
+    And customer mengikuti kelas "Hatha Yoga" secara gratis
+    Then kuota membership "Hatha Yoga" berkurang 

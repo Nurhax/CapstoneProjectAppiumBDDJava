@@ -1,5 +1,4 @@
 @Coach
-
 Feature: Operasional dan Manajemen Coach
   Sebagai seorang coach
   Saya ingin melihat jadwal kelas, memverifikasi peserta, menunggah bukti kelas dan mengecek gaji saya

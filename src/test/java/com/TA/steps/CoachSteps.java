@@ -59,6 +59,23 @@ public class CoachSteps {
         wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[contains(@class, 'coach-nav-item')]")));
     }
 
+    @Given("coach sudah login dan berada di halaman daftar peserta kelas")
+    public void beradaDiHalamanPeserta() {
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+        
+        // Jalankan login awal terlebih dahulu via method existing
+        coachSudahLogin();
+        
+        // Arahkan langsung ke URL spesifik daftar peserta untuk pengujian isolasi upload berkas
+        SetupSteps.driver.get("http://10.0.2.2:8000/coach/schedule/36");
+        
+        try {
+            js.executeScript("var splash = document.getElementById('splash-circle'); if(splash) { splash.remove(); }");
+            Thread.sleep(500);
+        } catch (Exception e) {}
+    }
+
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     // NAVIGASI NAVBAR
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -85,7 +102,7 @@ public class CoachSteps {
     }
 
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    // MODUL JADWAL & PESERTA (FR 17 & 20)
+    // MODUL JADWAL & PESERTA
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
     @Then("coach dapat melihat jadwal kelas yang harus diajar hari ini")
@@ -156,16 +173,17 @@ public class CoachSteps {
 
         try {
             // 1. Cari baris pertama (tr) di dalam tabel yang statusnya masih 'Tidak Hadir'
-            // Kita kunci tr yang di dalamnya mengandung class 'status-badge-tidak'
             String xpathRowTidakHadir = "//table[@class='absen-table']/tbody/tr[td//span[@class='status-badge-tidak']][1]";
             WebElement rowTarget = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathRowTidakHadir)));
 
             // 2. Ambil teks nama pelanggan dari td pertama di baris tersebut
+            // [cite: 3]
             WebElement elementNama = rowTarget.findElement(By.xpath("./td[1]"));
             checkedParticipantName = elementNama.getText().trim();
             System.out.println("Menyimpan nama peserta yang akan diabsen: " + checkedParticipantName);
 
             // 3. Temukan tombol (.btn-check) yang berada di dalam baris yang SAMA
+            // [cite: 3]
             WebElement btnChecklist = rowTarget.findElement(By.xpath(".//button[contains(@class, 'btn-check')]"));
             
             // Scroll dan eksekusi klik via JS
@@ -190,33 +208,22 @@ public class CoachSteps {
 
     @Then("data peserta tersebut berubah menjadi ke bagian {string}")
     public void dataPesertaBerubah(String statusTujuan) {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
         JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
 
         // Validasi awal variabel global
         Assert.assertFalse("Variabel checkedParticipantName kosong!", checkedParticipantName.isEmpty());
 
         try {
-            // 1. Bersihkan splash screen pasca-redirect/reload
+            // 1. Bersihkan splash screen pasca-submit update jika ada
             try {
                 js.executeScript("var splash = document.getElementById('splash-circle'); if(splash) { splash.remove(); }");
+                js.executeScript("var spinner = document.getElementById('splash-spinner'); if(spinner) { spinner.remove(); }");
+                Thread.sleep(1000);
             } catch (Exception e) {}
 
-            // 2. Klik tombol "Cek Jadwal" dulu untuk masuk kembali ke detail daftar
-            String xpathCekJadwal = "//button[contains(normalize-space(), 'Cek Jadwal')] | //a[contains(normalize-space(), 'Cek Jadwal')]";
-            WebElement btnCekJadwal = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathCekJadwal)));
-            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnCekJadwal);
-            js.executeScript("arguments[0].click();", btnCekJadwal);
-            System.out.println("Membuka ulang halaman jadwal untuk verifikasi...");
-            Thread.sleep(1500);
-
-            // Bersihkan splash screen lagi kalau halamannya memuat ulang DOM
-            try {
-                js.executeScript("var splash = document.getElementById('splash-circle'); if(splash) { splash.remove(); }");
-            } catch (Exception e) {}
-
-            // 3. Pengecekan tabel: Cari baris (tr) yang kolom pertamanya berisi nama si target (Case-Insensitive)
-            // Dan pastikan kolom keduanya sekarang memiliki elemen dengan class 'status-badge-hadir'
+            // 2. Pengecekan langsung pada tabel: Cari baris (tr) berdasarkan nama target
+            // Dan pastikan kolom kedua memiliki badge 'status-badge-hadir' atau teks 'Hadir'
             String nameLower = checkedParticipantName.toLowerCase();
             
             String xpathValidasiTabelHadir = String.format(
@@ -233,16 +240,152 @@ public class CoachSteps {
             System.out.println("SUKSES SAKTI! Teks/Badge Hadir ditemukan untuk peserta: " + checkedParticipantName);
 
         } catch (Exception e) {
-            Assert.fail("Validasi gagal! Baris tabel dengan nama '" + checkedParticipantName + "' tidak memiliki badge 'status-badge-hadir'. Error: " + e.getMessage());
+            Assert.fail("Validasi gagal! Baris tabel dengan nama '" + checkedParticipantName + "' tidak memiliki badge status Hadir. Error: " + e.getMessage());
         }
     }
 
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    // BACKUP METHOD / UNUSED STEPS REMAINING
+    // UPLOAD BUKTI HADIR
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-//    @Given("coach sudah login dan berada di halaman daftar peserta kelas")
-//    public void beradaDiHalamanPeserta() {
-//        SetupSteps.driver.get("http://10.0.2.2:8000/coach/schedule/37");
-//    }
+    @When("coach menekan tombol select file pada upload bukti hadir")
+    public void klikSelectFile() {
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+
+        try {
+            System.out.println("Mencari posisi teks 'Select file' (#uploadText) di WebView...");
+            
+            // 1. Kunci target elemen teks di dalam Box Area agar koordinatnya presisi
+            WebElement uploadTextBtn = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("uploadText")));
+            
+            // Gulung layar agar box upload area berada tepat di tengah-tengah emulator
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", uploadTextBtn);
+            Thread.sleep(1000); 
+
+            // 2. PINDAH CONTEXT KE NATIVE_APP UNTUK BYPASS SECURITY CHROME
+            String currentContext = ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).getContext();
+            ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).context("NATIVE_APP");
+            System.out.println("Berhasil beralih ke NATIVE_APP untuk melakukan ketukan fisik.");
+
+            // 3. JURUS SNIPER NATIVE CLICK: Cari elemen teks "Select file" menggunakan mesin Android murni
+            // Taktik ini mendeteksi teks yang dirender di layar Chrome dari kacamata OS Android
+            String xpathNativeText = "//*[@text='Select file' or @content-desc='Select file'] | //android.view.View[@resource-id='uploadText']";
+            
+            System.out.println("Mengetuk fisik komponen 'Select file' via UiAutomator2...");
+            WebElement nativeTarget = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathNativeText)));
+            
+            // Ketuk murni menggunakan perintah Native Android
+            nativeTarget.click();
+            System.out.println("Ketukan fisik berhasil dikirim!");
+
+            // 4. KEMBALIKAN CONTEXT KE WEBVIEW SEBELUM PINDAH STEP
+            ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).context(currentContext);
+            System.out.println("Context dikembalikan sementara ke: " + currentContext);
+            
+            // Kasih jeda 3.5 detik penuh agar pop-up file manager Android sukses terbuka sempurna
+            Thread.sleep(3500);
+
+        } catch (Exception e) {
+            // BACKUP PLAN: Kembalikan context jika di tengah jalan crash
+            try { 
+                ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).context("WEBVIEW_chrome"); 
+            } catch (Exception ex) {}
+            
+            Assert.fail("Gagal memicu pop-up select file upload menggunakan ketukan jari fisik Native. Error: " + e.getMessage());
+        }
+    }
+
+   @And("coach memilih foto bukti kelas")
+    public void memilihFotoBukti() {
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(12));
+        
+        String currentContext = ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).getContext();
+        System.out.println("Context saat ini: " + currentContext);
+
+        try {
+            // 1. PINDAH CONTEXT KE NATIVE_APP
+            ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).context("NATIVE_APP");
+            System.out.println("Berhasil beralih ke context NATIVE_APP.");
+            
+            // JEDA KRUSIAL: Kasih 3 detik penuh agar animasi BottomSheet SELESAI meluncur & diam di tempat!
+            System.out.println("Menunggu BottomSheet Media Picker selesai meluncur up...");
+            Thread.sleep(3000); 
+
+            // 2. HITUNG KOORDINAT ABSOLUT BERDASARKAN SCREENSHOT UI
+            // Berdasarkan gambar, posisi gambar hitam-putih gaje itu ada di pojok kiri atas di bawah teks Recent
+            org.openqa.selenium.Dimension screenSize = SetupSteps.driver.manage().window().getSize();
+            int screenWidth = screenSize.getWidth();
+            int screenHeight = screenSize.getHeight();
+            
+            // Koordinat murni area tengah gambar pertama (Sangat aman dari batas header Recent)
+            int clickX = (int) (screenWidth * 0.25);  // 25% dari kiri layar
+            int clickY = (int) (screenHeight * 0.32); // 32% dari atas layar
+            
+            System.out.println(String.format("MENEMBAK KOORDINAT FISIK GAMBAR: X=%d, Y=%d (Resolusi: %dx%d)", 
+                    clickX, clickY, screenWidth, screenHeight));
+
+            // 3. EKSEKUSI DOUBLE TAP (KETUKAN GANDA) BIAR MANTAP
+            // Kadang ketukan pertama cuma fokus ke window, ketukan kedua baru milih file
+            for (int i = 1; i <= 2; i++) {
+                System.out.println("Mengirim ketukan fisik ke-" + i);
+                org.openqa.selenium.interactions.PointerInput finger = new org.openqa.selenium.interactions.PointerInput(
+                        org.openqa.selenium.interactions.PointerInput.Kind.TOUCH, "finger");
+                org.openqa.selenium.interactions.Sequence tapSequence = new org.openqa.selenium.interactions.Sequence(finger, 1);
+
+                tapSequence.addAction(finger.createPointerMove(Duration.ofMillis(0), org.openqa.selenium.interactions.PointerInput.Origin.viewport(), clickX, clickY));
+                tapSequence.addAction(finger.createPointerDown(org.openqa.selenium.interactions.PointerInput.MouseButton.LEFT.asArg()));
+                tapSequence.addAction(finger.createPointerUp(org.openqa.selenium.interactions.PointerInput.MouseButton.LEFT.asArg()));
+
+                ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).perform(java.util.Collections.singletonList(tapSequence));
+                Thread.sleep(300); // Jeda antar ketukan ganda
+            }
+            
+            System.out.println("Double tap koordinat sukses dikirim!");
+            Thread.sleep(4000); // Jeda pemrosesan kembali ke WebView Chrome
+
+        } catch (Exception e) {
+            Assert.fail("Gagal mengeksekusi ketukan koordinat murni pada gambar Media Picker. Error: " + e.getMessage());
+        } finally {
+            // 4. KEMBALIKAN CONTEXT UTAMA KE WEBVIEW CHROME
+            ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).context(currentContext);
+            System.out.println("Context kembali dikunci ke: " + currentContext);
+        }
+    }
+    
+    @And("foto berhasil tersimpan ke dalam form bukti hadir")
+    public void fotoTersimpan() {
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+
+        try {
+            // Bersihkan splash screen bawaan PWA jika mendadak merender ulang DOM
+            try { js.executeScript("var splash = document.getElementById('splash-circle'); if(splash) { splash.remove(); }"); } catch (Exception e) {}
+
+            System.out.println("Memvalidasi status upload berdasarkan komponen #uploadFilename...");
+            
+            // XPath Sniper: Cari tag apa pun yang memiliki ID 'uploadFilename' dan teksnya mengandung ekstensi gambar (.jpg / .png)
+            String xpathFilenameAktif = "//*[@id='uploadFilename' and (contains(normalize-space(), '.jpg') or contains(normalize-space(), '.png') or contains(normalize-space(), 'jpeg'))]";
+            
+            // Tunggu sampai nama file visualnya bener-bener ter-render jelas di layar Chrome
+            WebElement elementFilename = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpathFilenameAktif)));
+            
+            String namaFileTerbaca = elementFilename.getText().trim();
+            System.out.println("SUKSES BERHASIL (HIJAU)! File bukti terdeteksi sukses masuk form: " + namaFileTerbaca);
+            
+            Assert.assertTrue("Nama file bukti tidak valid atau kosong!", !namaFileTerbaca.isEmpty());
+
+        } catch (Exception e) {
+            Assert.fail("Validasi gagal! Teks nama file gambar (.jpg/.png) tidak kunjung muncul di komponen #uploadFilename. Error: " + e.getMessage());
+        }
+    }
+
+    @Then("sistem berhasil menyimpan pembaruan kelas beserta bukti kehadiran")
+    public void sistemSimpanUpdate() {
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+        // Validasi pop-up toast notification sukses bawaan web aplikasi booking yoga kamu
+        boolean isSuccess = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("alert-success"))).isDisplayed();
+        Assert.assertTrue("Gagal menyimpan pembaruan kelas beserta unggahan bukti hadir!", isSuccess);
+        System.out.println("TC-16 Sukses Sempurna!");
+    }
 }

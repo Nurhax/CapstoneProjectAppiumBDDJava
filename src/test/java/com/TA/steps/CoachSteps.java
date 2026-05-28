@@ -397,4 +397,44 @@ public class CoachSteps {
         Assert.assertTrue("Gagal menyimpan pembaruan kelas beserta unggahan bukti hadir!", isSuccess);
         System.out.println("TC-16 Sukses Sempurna!");
     }
+    
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // LAPORAN GAJI COACH (FR 27) - AKTIF (TC-17)
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+    @Then("coach dapat melihat laporan gaji dari kelas yang telah selesai")
+    public void coachMelihatLaporanGaji() {
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+
+        try {
+            // 1. Bersihkan splash screen jika ada pasca-perpindahan ke tab Profil
+            try { 
+                js.executeScript("var splash = document.getElementById('splash-circle'); if(splash) { splash.remove(); }"); 
+                js.executeScript("var spinner = document.getElementById('splash-spinner'); if(spinner) { spinner.remove(); }");
+                Thread.sleep(500);
+            } catch (Exception e) {}
+
+            System.out.println("--- VALIDASI HALAMAN LAPORAN GAJI COACH ---");
+
+            // 2. DETEKSI ELEMEN INFORMASI GAJI UTAMA
+            // Menembak komponen container gaji, teks judul nominal, atau tabel rincian gaji
+            String xpathLaporanGaji = 
+                "//*[contains(@class, 'graph-title') or contains(@class, 'pendapatan-value') or contains(@id, 'salary')] | " +
+                "//*[contains(normalize-space(), 'Total Pendapatan') or contains(normalize-space(), 'Laporan Gaji') or contains(normalize-space(), 'Insentif')]";
+
+            System.out.println("Menunggu komponen atau teks informasi gaji merender visual di layar...");
+            WebElement elementGaji = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpathLaporanGaji)));
+            
+            // Geser ke tengah viewport biar keliatan jelas pas proses testing running
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", elementGaji);
+            
+            // 3. VALIDASI AKHIR JUNIT
+            Assert.assertTrue("Gawal! Elemen laporan gaji tidak tampil secara visual di halaman profil!", elementGaji.isDisplayed());
+            System.out.println("SUKSES SAKTI (HIJAU)! Coach berhasil melihat laporan gaji. Teks/Komponen terdeteksi: " + elementGaji.getText().trim());
+
+        } catch (Exception e) {
+            Assert.fail("Validasi gagal! Coach tidak dapat melihat laporan gaji pada halaman profil. Error: " + e.getMessage());
+        }
+    }
 }

@@ -34,8 +34,8 @@ Feature: Operasional dan Manajemen Coach
     And coach menekan tombol "Update Kelas"
     Then sistem berhasil menyimpan pembaruan kelas beserta bukti kehadiran
   
-   #@TC-17 @FR-27  
-   #Scenario: Coach melihat laporan gaji (FR27)
-    #Given coach sudah login dan berada di halaman coach
-    #When coach menekan tab "Profile" pada navbar
-    #Then coach dapat melihat laporan gaji dari kelas yang telah selesai
+   @TC-17 @FR-27  
+   Scenario: Coach melihat laporan gaji (FR27)
+    Given coach sudah login dan berada di halaman coach
+    When coach menekan tab "Profil" pada navbar
+    Then coach dapat melihat laporan gaji dari kelas yang telah selesai

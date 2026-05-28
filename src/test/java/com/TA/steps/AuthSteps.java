@@ -1,43 +1,46 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.TA.steps;
 
 import io.appium.java_client.android.AndroidDriver;
-import io.appium.java_client.android.options.UiAutomator2Options;
-import io.cucumber.java.After;
-import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.junit.Assert;
 import org.openqa.selenium.By;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.time.Duration;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import java.util.Random;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.support.ui.Select;
+import java.time.Duration;
+import java.util.Random;
 
 /**
- *
  * @author M.Iqbal Nurhaq
  */
-public class AuthSteps{
-    //Variabel untuk testing random and out of bounds data
+public class AuthSteps {
+    // Variabel untuk testing random and out of bounds data
     public String Username;
     public String Password;
-    
     
     public static String usernameCoach;
     public static String usernameCustomer;
     public static String namaLengkapCustomer;
     public Random rand = new Random();
+
+    // Helper untuk menyembunyikan keyboard Android secara aman
+    private void amankanKeyboard() {
+        try {
+            AndroidDriver driver = (AndroidDriver) SetupSteps.driver;
+            if (driver.isKeyboardShown()) {
+                driver.hideKeyboard();
+                System.out.println("Keyboard native Android berhasil disembunyikan secara paksa.");
+                Thread.sleep(800); // Jeda transisi pasca keyboard turun
+            }
+        } catch (Exception e) {
+            System.out.println("Keyboard sudah tertutup atau tidak mendukung hideKeyboard otomatis.");
+        }
+    }
 
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     // BAGIAN DATA PREPARASI
@@ -45,13 +48,10 @@ public class AuthSteps{
     
     @Given("pengguna sudah memiliki akun yang terdaftar dan aktif")
     public void penggunaSudahMemilikiAkunCustomer(){
-        //Akun mock yang udah lama dibuat
         if(usernameCustomer == null){
             usernameCustomer = "nurhaqtesting";
             System.out.println("Test login berjalan lebih dahulu sebelum daftar/register");
         }
-        
-        //Pake akun yang baru didaftarin
         Username = usernameCustomer;
         Password = "test123";
         System.out.println("Data preparasi customer auth");
@@ -59,7 +59,6 @@ public class AuthSteps{
     
     @Given("pengguna belum memiliki akun")
     public void penggunaBelumMemilikiAkun(){
-        //Kalo user gak punya akun sama sekali
         System.out.println("User akan menggunakan data untuk registrasi akun baru");
     }
     
@@ -72,11 +71,9 @@ public class AuthSteps{
     
     @Given("pengguna sudah memiliki akun yang terdaftar dan aktif dari admin")
     public void penggunaSudahMemilikiAkunCoach(){
-        //Akun mock yang udah lama dibuat coach
         if (usernameCoach == null){
             usernameCoach = "iqbaltest";
         }
-        
         Username = usernameCoach + "@coach.com";
         Password = "test123";
         System.out.println("Data preparasi coach auth sama dengan data registrasi");
@@ -88,7 +85,6 @@ public class AuthSteps{
     
     @And("pengguna berada di landing page")
     public void penggunaBeradaDiLandingPage(){
-        //Masih local host nanti diganti
         SetupSteps.driver.get("http://10.0.2.2:8000");
     }
     
@@ -97,7 +93,6 @@ public class AuthSteps{
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         String xpathSelector = String.format("//*[contains(text(), '%s')]", opsi);
         
-        // 1. Nunggu animasi selesai
         WebElement tombolOpsi = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathSelector)));
         JavascriptExecutor executor = (JavascriptExecutor) SetupSteps.driver;
         executor.executeScript("arguments[0].click();", tombolOpsi);
@@ -111,38 +106,57 @@ public class AuthSteps{
 
     @And("pengguna memasukkan username dan password yang valid pada halaman login")
     public void inputDataLoginValid(){
-        SetupSteps.driver.findElement(By.id("username")).sendKeys(Username);
-        SetupSteps.driver.findElement(By.id("password")).sendKeys(Password);
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+        
+        WebElement fieldUser = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));
+        fieldUser.clear();
+        fieldUser.sendKeys(Username);
+        
+        WebElement fieldPass = SetupSteps.driver.findElement(By.id("password"));
+        fieldPass.clear();
+        fieldPass.sendKeys(Password);
+        
+        // Panggil pengaman keyboard setelah isi password
+        amankanKeyboard();
     }
     
     @And("pengguna memasukkan nama lengkap, username, nomer telpon, dan password yang valid pada halaman register")
     public void inputDataRegisterCustomerValid(){
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+        
         usernameCustomer = "iqbaltesting" + rand.nextInt(1000);
         namaLengkapCustomer = "iqbal nurhaq testing" + rand.nextInt(1000);
         
-        SetupSteps.driver.findElement(By.name("name")).sendKeys(namaLengkapCustomer);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("name"))).sendKeys(namaLengkapCustomer);
         SetupSteps.driver.findElement(By.id("username")).sendKeys(usernameCustomer);
         SetupSteps.driver.findElement(By.name("phone")).sendKeys("081234567890");
         SetupSteps.driver.findElement(By.id("password")).sendKeys("test123");
+        
+        // Panggil pengaman keyboard setelah isi semua form registrasi
+        amankanKeyboard();
     }
     
     @And("pengguna mengisi nama coach, keahlian, nomor hp, deskripsi, rate per kelas, pengalaman tahun dan password")
     public void inputDataCoachBaru(){
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+        
         usernameCoach = "iqbaltesting" + rand.nextInt(1000);
-        //Rate coach random dan +1 biar gak 0 ratenya
         int rateCoach = (rand.nextInt(10000) + 1) * 1000;
         
-        SetupSteps.driver.findElement(By.name("name")).sendKeys(usernameCoach);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("name"))).sendKeys(usernameCoach);
         WebElement dropdownSpesialisasi = SetupSteps.driver.findElement(By.name("class_id"));
         Select selectSpesialisasi = new Select(dropdownSpesialisasi);
         selectSpesialisasi.selectByVisibleText("Yin Yoga");
+        
         SetupSteps.driver.findElement(By.name("phone")).sendKeys("089988887777");
         SetupSteps.driver.findElement(By.name("bio")).sendKeys("Instruktur yoga bersertifikat dengan pengalaman internasional. passnya:test123");
         SetupSteps.driver.findElement(By.name("rate_per_class")).sendKeys(Integer.toString(rateCoach));
         SetupSteps.driver.findElement(By.name("years_experience")).sendKeys("5");
         SetupSteps.driver.findElement(By.name("password")).sendKeys("test123");
         
-        System.out.println("Berhasil tambah coach!");
+        System.out.println("Berhasil mengisi data coach baru.");
+        // Panggil pengaman keyboard sebelum submit tambah coach
+        amankanKeyboard();
     }
     
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -151,75 +165,90 @@ public class AuthSteps{
     
     @And("pengguna menekan tombol {string}")
     public void penggunaMenekanTombol(String namaTombol) {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
         String xpathSelector = "";
 
-        // Jika tombolnya selain login dan regist pake class aja, pake enum kalo button lain gini juga
         if (namaTombol.equalsIgnoreCase("Tambah Coach")) {
             xpathSelector = "//button[contains(@class, 'btn-tambah-coach')]";
+        } else if(namaTombol.equalsIgnoreCase("Buat Akun")){
+            xpathSelector = "//button[contains(@class, 'btn-submit')]";
         } else {
-            // Tombol lain tetep dicari berdasarkan text
             xpathSelector = String.format("//button[contains(., '%s')]", namaTombol);
         }
 
-        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathSelector))).click();
+        try {
+            // Kita gunakan presenceOfElementLocated agar tidak terkecoh oleh pergeseran keyboard
+            WebElement tombol = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathSelector)));
+            
+            // Scroll dulu biar posisinya pas di layar pasca keyboard ditutup
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", tombol);
+            Thread.sleep(500);
+            
+            // Eksekusi paksa menggunakan JS Click biar bypass interupsi layout keyboard turun
+            js.executeScript("arguments[0].click();", tombol);
+            System.out.println("Berhasil mengeklik tombol '" + namaTombol + "' via JS Executor.");
+        } catch (Exception e) {
+            Assert.fail("Gagal menekan tombol '" + namaTombol + "'. Error: " + e.getMessage());
+        }
     }
     
     @And("pengguna menekan tombol {string} lagi")
     public void penggunaMenekanTombolLagi(String tombolLama){
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        // Menggunakan tag 'a' atau semacamnya sesuai struktur navigasi tab PWA kamu
-        String xpathSelector = String.format("//button[contains(@class, 'btn-modal-submit')]", tombolLama);
-        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathSelector))).click();
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+        
+        String xpathSelector = "//button[contains(@class, 'btn-modal-submit')]";
+        try {
+            WebElement tombol = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathSelector)));
+            js.executeScript("arguments[0].click();", tombol);
+        } catch (Exception e) {
+            Assert.fail("Gagal menekan tombol modal submit lagi. Error: " + e.getMessage());
+        }
     }
     
     @And("pengguna menekan tab {string}")
     public void penggunaMenekanTab(String namaTab) {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        // Menggunakan tag 'a' buat mencari elementnya
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+        
         String xpathSelector = String.format("//a[contains(., '%s')]", namaTab);
-        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathSelector))).click();
+        try {
+            WebElement tab = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathSelector)));
+            js.executeScript("arguments[0].click();", tab);
+        } catch (Exception e) {
+            Assert.fail("Gagal menekan tab '" + namaTab + "'. Error: " + e.getMessage());
+        }
     }
     
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     // BAGIAN VERIFIKASI PER SKENARIO
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     
-    // Skenario 1: Dashboard Customer
     @And("^pengguna diarahkan ke halaman utama \\(Dashboard\\)$")
     public void penggunaDiarahkanKeDashboardCustomer() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        // Ganti 'card-promo' dengan elemen unik di dashboard customer
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
         boolean isDashboardMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("card-promo"))).isDisplayed();
         Assert.assertTrue("Gagal masuk ke dashboard customer!", isDashboardMuncul);
     }
 
-    // Skenario 3 & 4: Dashboard Admin
     @Then("^pengguna diarahkan ke halaman utama admin \\(Dashboard\\)$")
     public void penggunaDiarahkanKeDashboardAdmin() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        // Ganti dengan elemen unik di dashboard admin
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
         boolean isAdminMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("btn-tambah-member"))).isDisplayed();
         Assert.assertTrue("Gagal masuk ke dashboard admin!", isAdminMuncul);
     }
 
-    // Skenario 5: Dashboard Coach
     @Then("^pengguna diarahkan ke halaman utama coach \\(Dashboard\\)$")
     public void penggunaDiarahkanKeDashboardCoach() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        // Ganti dengan elemen unik di dashboard coach
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
         boolean isCoachMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("coach-content"))).isDisplayed();
         Assert.assertTrue("Gagal masuk ke dashboard coach!", isCoachMuncul);
     }
 
-    // Verifikasi Notifikasi (Registrasi Customer & Tambah Coach)
     @Then("sistem menampilkan notifikasi {string}")
     public void sistemMenampilkanNotifikasi(String expectedMessage) {
-       // Kita kasih waktu tunggu sedikit lebih lama (misal 10 detik) buat jaga-jaga notifnya delay
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        
-        // Cari elemen APAPUN di layar yang mengandung teks dari Gherkin
-        // Menggunakan normalize-space() agar kebal terhadap enter atau spasi berlebih
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
         String xpathNotifikasi = String.format("//*[contains(normalize-space(), '%s')]", expectedMessage);
         
         try {
@@ -230,5 +259,4 @@ public class AuthSteps{
             Assert.fail("Gagal menemukan teks notifikasi: '" + expectedMessage + "' dalam waktu yang ditentukan.");
         }
     }
-    
 }

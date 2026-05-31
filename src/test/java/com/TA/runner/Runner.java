@@ -15,7 +15,7 @@ import org.junit.runner.RunWith;
     features = "src/test/resources/features", // Lokasi file feature
     glue = "com.TA.steps",                    // Lokasi step definitions
     plugin = {"pretty", "html:target/cucumber-reports.html"} // Report HTML
-    //,tags = "@FR-23" //kalo misalkan mau test sesuai tags aja
+    ,tags = "@Admin" //kalo misalkan mau test sesuai tags aja
 )
 /**
  *

@@ -10,7 +10,7 @@ Feature: Operasional dan Manajemen Admin
     When admin memilih opsi "Home" pada navbar admin
     And admin menekan tombol "Tambah Kelas"
     And admin mengisi data kelas serta menentukan kuota kelas yang valid
-    And admin menekan tombol "Tambah Kelas" lagi
+    And admin menekan tombol "Tambah Kelas"
     Then sistem berhasil menyimpan jadwal kelas baru beserta pembatasan kuotanya
 
   @TC-20 @FR-08 @FR-09
@@ -25,7 +25,8 @@ Feature: Operasional dan Manajemen Admin
     Given admin berada di halaman dashboard admin
     When admin memilih opsi "Pelanggan" pada navbar admin
     And admin menekan tombol edit pada salah satu pengguna
-    And admin menekan tombol "Batalkan Pemesanan"
+    And admin menekan tombol "Batalkan Jadwal"
+    And admin menekan tombol "Ya"
     Then sistem berhasil memproses pembatalan booking dan mengembalikan status kelas tersebut
 
   @TC-22 @FR-11

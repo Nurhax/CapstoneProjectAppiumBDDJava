@@ -9,13 +9,13 @@ Feature: Manajemen Pelaporan dan Analitik oleh Admin
     Given admin berada di halaman dashboard admin
     When admin memilih opsi "Home" pada navbar
     And admin memilih salah satu jadwal kelas aktif
-    And admin menekan tombol "View Jadwal"
+    And admin menekan tombol "Lihat Jadwal"
     Then sistem menampilkan data rekaman kehadiran peserta pada kelas tersebut
 
   @TC-31 @FR-30
   Scenario: Admin memantau direktori kumpulan data pelanggan aktif
     Given admin berada di halaman dashboard admin
-    When admin memilih opsi "Pelanggan" pada navbar analitik
+    When admin memilih opsi "Pelanggan" pada navbar
     Then sistem berhasil menampilkan kumpulan rekaman data pelanggan secara lengkap
 
   #@TC-32 @FR-31
@@ -39,12 +39,12 @@ Feature: Manajemen Pelaporan dan Analitik oleh Admin
   @TC-34 @FR-32
   Scenario: Admin memantau visualisasi grafik performa bisnis pada ringkasan analitik
     Given admin berada di halaman dashboard admin
-    When admin memilih opsi "Keuangan" pada navbar analitik
+    When admin memilih opsi "Keuangan" pada navbar
     Then sistem berhasil menampilkan grafik dan komponen dashboard analytic secara berkala
 
   @TC-35 @FR-34
   Scenario: Admin mengunduh rangkuman dokumen cetak laporan keuangan pendapatan
     Given admin berada di halaman dashboard admin
-    When admin memilih opsi "Keuangan" pada navbar analitik
-    And admin menekan tombol "Cetak Pdf"
+    When admin memilih opsi "Keuangan" pada navbar
+    And admin menekan tombol "CETAK PDF"
     Then sistem otomatis mengunduh berkas file data rangkuman pendapatan berdasarkan rentang waktu tertentu

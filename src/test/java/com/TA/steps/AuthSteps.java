@@ -235,7 +235,7 @@ public class AuthSteps {
     @Then("^pengguna diarahkan ke halaman utama admin \\(Dashboard\\)$")
     public void penggunaDiarahkanKeDashboardAdmin() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
-        boolean isAdminMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("btn-tambah-member"))).isDisplayed();
+        boolean isAdminMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("calendar-wrap"))).isDisplayed();
         Assert.assertTrue("Gagal masuk ke dashboard admin!", isAdminMuncul);
     }
 

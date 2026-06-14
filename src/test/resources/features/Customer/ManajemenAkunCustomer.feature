@@ -10,11 +10,11 @@ Feature: Manajemen Profil Pribadi Customer
     And customer menekan tab "Profil"
     When customer menekan tombol Edit Nama Lengkap
     And customer mengubah nama menjadi "Iqbal updated"
-    And customer menekan tombol Save Nama Lengkap
+    And customer menekan tombol simpan Nama Lengkap
     And customer menekan tombol Edit Nomer HP
     And customer mengubah Nomer HP menjadi "08111222333"
-    And customer menekan tombol Save Nomer HP
+    And customer menekan tombol simpan Nomor HP
     And customer menekan tombol Edit Password
     And customer mengubah passwordnya menjadi "test123"
-    And customer menekan tombol Save Password
+    And customer menekan tombol simpan Password
     Then data profil customer berubah sesuai dengan inputan yang baru

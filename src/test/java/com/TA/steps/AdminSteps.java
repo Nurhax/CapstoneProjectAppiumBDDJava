@@ -227,39 +227,51 @@ public class AdminSteps {
                 js.executeScript("arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", inputCustomName);
             }
 
-            // 3. JURUS BYPASS DROPDOWN (Tunggu API & Paksa Index 1)
+            // 3. JURUS BYPASS DROPDOWN
             System.out.println("Menunggu opsi dropdown ter-render dari API...");
             Thread.sleep(1000); 
             
             WebElement dropClass = SetupSteps.driver.findElement(By.xpath("//select[@name='class_id']"));
-            WebElement dropCoach = SetupSteps.driver.findElement(By.xpath("//select[@name='coach_id']"));
-            
             try {
                 new org.openqa.selenium.support.ui.Select(dropClass).selectByIndex(1);
             } catch (Exception ex) {
                 js.executeScript("arguments[0].selectedIndex = 1; arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", dropClass);
             }
             
+            // PERBAIKAN: Memilih coach bernama 'iqbaltest'
+            WebElement dropCoach = SetupSteps.driver.findElement(By.xpath("//select[@name='coach_id']"));
             try {
-                new org.openqa.selenium.support.ui.Select(dropCoach).selectByIndex(1);
-            } catch (Exception ex) {
+                // Cari opsi yang mengandung kata 'iqbaltest' (mengabaikan spasi/enter di HTML)
+                WebElement opsiIqbal = dropCoach.findElement(By.xpath(".//option[contains(normalize-space(.), 'iqbaltest')]"));
+                String valueIqbal = opsiIqbal.getAttribute("value"); // Mengambil ID-nya (misal: "4")
+                
+                try {
+                    new org.openqa.selenium.support.ui.Select(dropCoach).selectByValue(valueIqbal);
+                } catch (Exception ex) {
+                    js.executeScript("arguments[0].value = arguments[1]; arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", dropCoach, valueIqbal);
+                }
+                System.out.println("Berhasil memilih coach 'iqbaltest'.");
+            } catch (Exception e) {
+                System.out.println("Peringatan: Coach 'iqbaltest' tidak ditemukan di pilihan. Jatuh pada pilihan default (Index 1).");
                 js.executeScript("arguments[0].selectedIndex = 1; arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", dropCoach);
             }
             
-            // 4. JURUS BYPASS ANTI-NATIVE PICKER ANDROID 13
+            // 4. JURUS BYPASS ANTI-NATIVE PICKER ANDROID 13 & DYNAMIC DATE
             System.out.println("Mengisi Date & Time secara silent (Bypass Native Android Picker)...");
 
-            WebElement dateField = SetupSteps.driver.findElement(By.xpath("//input[@name='schedule_date']"));
-            js.executeScript("arguments[0].value = '2026-06-15'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", dateField);
+            // PERBAIKAN: Mengambil tanggal hari ini secara dinamis pakai java.time (Format YYYY-MM-DD)
+            String tanggalHariIni = java.time.LocalDate.now().toString();
             
-            // PERBAIKAN: Format jam wajib pakai titik dua (HH:mm) agar diterima HTML5!
+            WebElement dateField = SetupSteps.driver.findElement(By.xpath("//input[@name='schedule_date']"));
+            js.executeScript("arguments[0].value = arguments[1]; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", dateField, tanggalHariIni);
+            System.out.println("Tanggal kelas di-set ke hari ini: " + tanggalHariIni);
+            
             WebElement startField = SetupSteps.driver.findElement(By.xpath("//input[@name='start_time']"));
             js.executeScript("arguments[0].value = '12:12'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", startField);
             
             WebElement endField = SetupSteps.driver.findElement(By.xpath("//input[@name='end_time']"));
             js.executeScript("arguments[0].value = '13:13'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", endField);
             
-            // Eksekusi kolom kapasitas/kuota
             WebElement capField = SetupSteps.driver.findElement(By.xpath("//input[@name='capacity']"));
             js.executeScript("arguments[0].value = '20'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", capField);
             

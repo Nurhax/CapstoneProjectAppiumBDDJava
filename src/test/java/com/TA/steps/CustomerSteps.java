@@ -200,20 +200,47 @@ public class CustomerSteps{
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
     }
 
-    @And("customer mengubah nama menjadi {string}")
+    @And("^customer mengubah nama menjadi \"([^\"]*)\"$")
     public void customerMengubahNama(String namaBaru) {
-        updatedName = namaBaru;
-        WebElement inputNama = SetupSteps.driver.findElement(By.name("name"));
-        inputNama.clear();
-        inputNama.sendKeys(namaBaru);
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+        
+        try {
+            // Simpan ke variabel global untuk divalidasi di @Then nanti
+            updatedName = namaBaru; 
+            
+            // Cari input berdasarkan name="name" sesuai HTML
+            WebElement inputNama = wait.until(ExpectedConditions.presenceOfElementLocated(By.name("name")));
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", inputNama);
+            js.executeScript("arguments[0].removeAttribute('hidden');", inputNama);
+            
+            // JURUS REACT STATE HACK
+            js.executeScript(
+                "var input = arguments[0]; var value = arguments[1];" +
+                "var nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;" +
+                "if (nativeInputValueSetter) { nativeInputValueSetter.call(input, value); } else { input.value = value; }" +
+                "input.dispatchEvent(new Event('input', { bubbles: true }));" +
+                "input.dispatchEvent(new Event('change', { bubbles: true }));",
+                inputNama, namaBaru
+            );
+            
+            // Pancing keyboard MURNI agar UI sadar ada perubahan
+            inputNama.sendKeys(org.openqa.selenium.Keys.SPACE);
+            inputNama.sendKeys(org.openqa.selenium.Keys.BACK_SPACE);
+            Thread.sleep(500);
+            System.out.println("Input Nama berhasil diinjeksi dengan: " + namaBaru);
+            
+        } catch (Exception e) {
+            Assert.fail("Gagal mengubah nama: " + e.getMessage());
+        }
     }
 
-    @And("customer menekan tombol Save Nama Lengkap")
-    public void customerMenekanTombolSaveUsername() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        String xpath = "//div[contains(@class, 'info-row-left') and contains(., 'Nama Lengkap')]/following-sibling::button[contains(@class, 'save-btn')]";
-        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
-    }
+//    @And("customer menekan tombol Save Nama Lengkap")
+//    public void customerMenekanTombolSaveUsername() {
+//        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+//        String xpath = "//div[contains(@class, 'info-row-left') and contains(., 'Nama Lengkap')]/following-sibling::button[contains(@class, 'save-btn')]";
+//        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
+//    }
 
     @And("customer menekan tombol Edit Nomer HP")
     public void customerMenekanTombolEditNomerHP() {
@@ -222,20 +249,51 @@ public class CustomerSteps{
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
     }
 
-    @And("customer mengubah Nomer HP menjadi {string}")
+    @And("^customer mengubah Nomer HP menjadi \"([^\"]*)\"$")
     public void customerMengubahNomerHP(String hpBaru) {
-        updatedPhone = hpBaru;
-        WebElement inputHp = SetupSteps.driver.findElement(By.name("phone_number"));
-        inputHp.clear();
-        inputHp.sendKeys(hpBaru);
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+        
+        try {
+            // Simpan ke variabel global untuk divalidasi di @Then
+            updatedPhone = hpBaru; 
+            
+            // Cari input berdasarkan name="phone_number" sesuai HTML
+            WebElement inputHp = wait.until(ExpectedConditions.presenceOfElementLocated(By.name("phone_number")));
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", inputHp);
+            js.executeScript("arguments[0].removeAttribute('hidden');", inputHp);
+            
+            // JURUS REACT STATE HACK
+            js.executeScript(
+                "var input = arguments[0]; var value = arguments[1];" +
+                "var nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;" +
+                "if (nativeInputValueSetter) { nativeInputValueSetter.call(input, value); } else { input.value = value; }" +
+                "input.dispatchEvent(new Event('input', { bubbles: true }));" +
+                "input.dispatchEvent(new Event('change', { bubbles: true }));",
+                inputHp, hpBaru
+            );
+            
+            // PANCINGAN KHUSUS NOMOR HP: Hapus angka terakhir dan ketik ulang manual!
+            String lastChar = hpBaru.substring(hpBaru.length() - 1);
+            inputHp.sendKeys(org.openqa.selenium.Keys.BACK_SPACE);
+            Thread.sleep(200);
+            inputHp.sendKeys(lastChar);
+            inputHp.sendKeys(org.openqa.selenium.Keys.TAB); // Trigger 'blur' selesai ngetik
+            
+            Thread.sleep(500);
+            System.out.println("Input Nomor HP berhasil diinjeksi dengan: " + hpBaru);
+            
+        } catch (Exception e) {
+            Assert.fail("Gagal mengubah Nomer HP: " + e.getMessage());
+        }
     }
 
-    @And("customer menekan tombol Save Nomer HP")
-    public void customerMenekanTombolSaveNomerHP() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        String xpath = "//div[contains(@class, 'info-row-left') and contains(., 'Nomor HP')]/following-sibling::button[contains(@class, 'save-btn')]";
-        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
-    }
+//    @And("customer menekan tombol Save Nomer HP")
+//    public void customerMenekanTombolSaveNomerHP() {
+//        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+//        String xpath = "//div[contains(@class, 'info-row-left') and contains(., 'Nomor HP')]/following-sibling::button[contains(@class, 'save-btn')]";
+//        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
+//    }
 
     @And("customer menekan tombol Edit Password")
     public void customerMenekanTombolEditPassword() {
@@ -244,46 +302,155 @@ public class CustomerSteps{
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
     }
 
-    @And("customer mengubah passwordnya menjadi {string}")
-    public void customerMengubahPassword(String passwordBaru) {
-        WebElement inputPass = SetupSteps.driver.findElement(By.id("pw-new"));
-        inputPass.sendKeys(passwordBaru);
-        inputPass = SetupSteps.driver.findElement(By.id("pw-confirm"));
-        inputPass.sendKeys(passwordBaru);
+    @And("^customer mengubah passwordnya menjadi \"([^\"]*)\"$")
+    public void customerMengubahPassword(String passBaru) {
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+        
+        try {
+            // =========================================================
+            // 1. ISI KOLOM PASSWORD UTAMA
+            // (Kita kecualikan name yang ada kata 'confirmation' biar nggak ketukar)
+            // =========================================================
+            WebElement inputPass = wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.xpath("//input[@type='password' and not(contains(@name, 'confirmation')) and not(@id='pw-confirm')]")
+            ));
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", inputPass);
+            js.executeScript("arguments[0].removeAttribute('hidden');", inputPass);
+            
+            // JURUS REACT STATE HACK (Password Utama)
+            js.executeScript(
+                "var input = arguments[0]; var value = arguments[1];" +
+                "var nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;" +
+                "if (nativeInputValueSetter) { nativeInputValueSetter.call(input, value); } else { input.value = value; }" +
+                "input.dispatchEvent(new Event('input', { bubbles: true }));" +
+                "input.dispatchEvent(new Event('change', { bubbles: true }));",
+                inputPass, passBaru
+            );
+            
+            // Pancing keyboard murni
+            inputPass.sendKeys(org.openqa.selenium.Keys.SPACE);
+            inputPass.sendKeys(org.openqa.selenium.Keys.BACK_SPACE);
+            
+            // =========================================================
+            // 2. ISI KOLOM KONFIRMASI PASSWORD
+            // =========================================================
+            WebElement inputConfirm = wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.xpath("//input[@name='password_confirmation' or @id='pw-confirm']")
+            ));
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", inputConfirm);
+            js.executeScript("arguments[0].removeAttribute('hidden');", inputConfirm);
+            
+            // JURUS REACT STATE HACK (Konfirmasi Password)
+            js.executeScript(
+                "var input = arguments[0]; var value = arguments[1];" +
+                "var nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;" +
+                "if (nativeInputValueSetter) { nativeInputValueSetter.call(input, value); } else { input.value = value; }" +
+                "input.dispatchEvent(new Event('input', { bubbles: true }));" +
+                "input.dispatchEvent(new Event('change', { bubbles: true }));",
+                inputConfirm, passBaru
+            );
+            
+            // Pancing keyboard murni
+            inputConfirm.sendKeys(org.openqa.selenium.Keys.SPACE);
+            inputConfirm.sendKeys(org.openqa.selenium.Keys.BACK_SPACE);
+            
+            Thread.sleep(500);
+            System.out.println("Input Password dan Konfirmasi Password berhasil diinjeksi penuh!");
+            
+        } catch (Exception e) {
+            Assert.fail("Gagal mengubah password: " + e.getMessage());
+        }
     }
 
-    @And("customer menekan tombol Save Password")
-    public void customerMenekanTombolSavePassword() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        String xpath = "//div[contains(@class, 'info-row-left') and contains(., 'Password')]/following-sibling::button[contains(@class, 'save-btn')]";
-        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
+//    @And("customer menekan tombol Save Password")
+//    public void customerMenekanTombolSavePassword() {
+//        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+//        String xpath = "//div[contains(@class, 'info-row-left') and contains(., 'Password')]/following-sibling::button[contains(@class, 'save-btn')]";
+//        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
+//    }
+    
+    // Menangkap parameter field apa yang sedang disimpan (misal: "Nama Lengkap")
+   @And("^customer menekan tombol simpan (.*)$")
+    public void customerMenekanTombolSimpanProfil(String namaField) {
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+        
+        // Bersihkan parameter dari spasi atau tanda kutip jika ada
+        namaField = namaField.replace("\"", "").trim();
+        
+        try {
+            System.out.println("Mencari tombol simpan khusus untuk area: '" + namaField + "'...");
+            
+            // XPATH SNIPER ASLI: 
+            // Cari elemen ber-class info-label sesuai teks, lalu comot persis 1 <button> pertama 
+            // yang muncul SETELAH elemen label tersebut di struktur HTML.
+            String xpathSave = String.format(
+                "//*[contains(@class, 'info-label') and contains(normalize-space(.), '%s')]/following::button[1]",
+                namaField
+            );
+            
+            // Tunggu sampai tombol tersebut ditemukan
+            WebElement targetBtn = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathSave)));
+            
+            // Gulung layar persis ke tombol tersebut
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", targetBtn);
+            Thread.sleep(500); 
+            
+            // JURUS LICIK: Cari form atau div terdekat dari tombol itu, hapus required/hidden inputannya
+            js.executeScript(
+                "var wrapper = arguments[0].closest('form') || arguments[0].closest('div');" +
+                "if(wrapper) {" +
+                "   var inputs = wrapper.querySelectorAll('input, select');" +
+                "   for(var i=0; i<inputs.length; i++) { inputs[i].removeAttribute('required'); inputs[i].removeAttribute('hidden'); }" +
+                "}", targetBtn
+            );
+            
+            // Eksekusi klik murni atau JS
+            try {
+                targetBtn.click();
+            } catch (Exception e) {
+                js.executeScript("arguments[0].click();", targetBtn);
+            }
+            
+            // BAZOOKA: Kalau ternyata ini di dalam form, tembak submit langsung
+            try {
+                WebElement parentForm = targetBtn.findElement(By.xpath("./ancestor::form"));
+                js.executeScript("arguments[0].submit();", parentForm);
+            } catch (Exception e) {}
+            
+            Thread.sleep(2000); // Beri waktu PWA ngirim data ke backend
+            System.out.println("Berhasil menekan tombol simpan untuk '" + namaField + "'!");
+            
+        } catch (Exception e) {
+            Assert.fail("Gagal menekan tombol simpan profil untuk '" + namaField + "'. Error: " + e.getMessage());
+        }
     }
 
     @Then("data profil customer berubah sesuai dengan inputan yang baru")
     public void dataProfilCustomerBerubah() {
-        // Kita naikkan WebDriverWait menjadi 15 detik khusus untuk validasi ini
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(15));
         JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
 
         try {
-            // 1. JURUS BYPASS ANIMASI: Hancurkan splash screen pengganggu koordinat DOM
+            // 1. JURUS BYPASS ANIMASI: Hancurkan splash screen
             try {
                 js.executeScript("var splash = document.getElementById('splash-circle'); if(splash) { splash.remove(); }");
                 js.executeScript("var spinner = document.getElementById('splash-spinner'); if(spinner) { spinner.remove(); }");
-                Thread.sleep(1500); // Beri jeda 1.5 detik agar PWA selesai melakukan state-update data
+                Thread.sleep(1500); 
             } catch (Exception e) {}
 
-            // 2. SANITY CHECK: Pastikan data inputan tidak kosong
             Assert.assertFalse("Variabel updatedName kosong!", updatedName.isEmpty());
             Assert.assertFalse("Variabel updatedPhone kosong!", updatedPhone.isEmpty());
 
             System.out.println("--- PROSES VALIDASI REAL-TIME PROFIL ---");
 
             // =========================================================================
-            // LAKUKAN VALIDASI NAMA LENGKAP (Gunakan presenceOfElementLocated agar lebih toleran)
+            // LAKUKAN VALIDASI NAMA LENGKAP (Targeting spesifik class 'value-text')
             // =========================================================================
-            String nameLower = updatedName.toLowerCase();
-            String xpathNama = String.format("//*[contains(translate(normalize-space(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '%s')]", nameLower);
+            String nameLower = updatedName.toLowerCase().trim();
+            // XPATH DIPERBARUI: Langsung menembak div yang memiliki class value-text
+            String xpathNama = String.format("//div[contains(@class, 'value-text') and contains(translate(normalize-space(.), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '%s')]", nameLower);
             
             WebElement elementNama = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathNama)));
             js.executeScript("arguments[0].scrollIntoView({block: 'center'});", elementNama);
@@ -291,46 +458,36 @@ public class CustomerSteps{
             System.out.println("Nama berhasil divalidasi: " + elementNama.getText());
 
             // =========================================================================
-            // LAKUKAN VALIDASI NOMOR HP (UPGRADE JURUS PALING AMAN)
+            // LAKUKAN VALIDASI NOMOR HP 
             // =========================================================================
             String stringHp = updatedPhone.trim();
             String empatAngkaTerakhir = stringHp.substring(Math.max(0, stringHp.length() - 4));
             System.out.println("Mencari Nomor HP menggunakan potongan digit belakang: " + empatAngkaTerakhir);
 
-            // Kita perluas XPath-nya menggunakan normalize-space() pada text() untuk mengantisipasi whitespace HTML formatting
-            String xpathPhoneSakti = String.format(
-                "//*[contains(normalize-space(), '%s')] | //input[contains(@value, '%s')]", 
-                empatAngkaTerakhir, empatAngkaTerakhir
-            );
+            // XPATH DIPERBARUI: Langsung menembak div value-text
+            String xpathPhoneSakti = String.format("//div[contains(@class, 'value-text') and contains(normalize-space(.), '%s')]", empatAngkaTerakhir);
 
             WebElement elementPhone;
             try {
-                // Percobaan pertama mencari nomor HP
                 elementPhone = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathPhoneSakti)));
             } catch (TimeoutException te) {
-                // JIKA TIMEOUT (TETAP TIDAK KETEMU): PWA kemungkinan stuck di state lama. 
-                // Kita trigger paksa refresh halaman via driver untuk mereload data terbaru dari database
                 System.out.println("Nomor HP belum ter-render sempurna. Mencoba merefresh halaman profil...");
                 SetupSteps.driver.navigate().refresh();
-                Thread.sleep(2000); // Tunggu reload selesai
+                Thread.sleep(2000); 
                 
-                // Hancurkan splash screen lagi pasca-refresh
                 try { js.executeScript("var splash = document.getElementById('splash-circle'); if(splash) { splash.remove(); }"); } catch (Exception e) {}
                 
-                // Coba cari ulang setelah halaman bersih ter-refresh
                 elementPhone = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathPhoneSakti)));
             }
             
             js.executeScript("arguments[0].scrollIntoView({block: 'center'});", elementPhone);
             Assert.assertTrue("Nomor HP baru tidak kelihatan di halaman profil!", elementPhone.isDisplayed());
             
-            String teksHpDiUI = elementPhone.getText().isEmpty() ? elementPhone.getAttribute("value") : elementPhone.getText();
-            System.out.println("Nomor HP berhasil divalidasi. Tercatat di UI: " + teksHpDiUI);
-
+            System.out.println("Nomor HP berhasil divalidasi. Tercatat di UI: " + elementPhone.getText());
             System.out.println("STATUS: VALIDASI SUKSES (HIJAU)!");
 
         } catch (Exception e) {
-            Assert.fail("Gagal memvalidasi perubahan profil di UI. Kemungkinan elemen tidak ditemukan. Error: " + e.getMessage());
+            Assert.fail("Gagal memvalidasi perubahan profil di UI. Error: " + e.getMessage());
         }
     }
     

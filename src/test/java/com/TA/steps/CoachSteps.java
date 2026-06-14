@@ -259,7 +259,7 @@ public class CoachSteps {
 
         try {
             System.out.println("Mencari posisi Box Kontainer uploadArea di WebView...");
-            WebElement uploadAreaBox = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("uploadArea")));
+            WebElement uploadAreaBox = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("buktiHadirInput")));
             
             // Gulung layar agar box upload area berada tepat di tengah-tengah emulator
             js.executeScript("arguments[0].scrollIntoView({block: 'center'});", uploadAreaBox);
@@ -273,7 +273,7 @@ public class CoachSteps {
             // XPATH DINAMIS: Mendukung kondisi BARU (Belum upload) maupun KONDISI EDIT (Sudah pernah upload)
             String xpathTargetTombol = 
                 "//*[@text='Select file' or @content-desc='Select file'] | " +
-                "//*[contains(@text, 'tap untuk ganti') or contains(@text, 'Foto sudah diupload')] | " +
+                "//*[contains(@text, 'Tap to change file') or contains(@text, 'Foto sudah diupload')] | " +
                 "//android.view.View[@resource-id='uploadText']";
             
             System.out.println("Memindai keberadaan elemen pemicu upload di layar...");

@@ -146,7 +146,7 @@ public class CoachSteps {
         js.executeScript("arguments[0].click();", tombol);
         System.out.println("Coach menekan tombol: " + namaTombol);
     }
-
+    
     @Then("coach dapat melihat daftar peserta untuk kelas tersebut")
     public void coachMelihatDaftarPeserta() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
@@ -185,7 +185,7 @@ public class CoachSteps {
 
             // 3. Temukan tombol (.btn-check) yang berada di dalam baris yang SAMA
             // [cite: 3]
-            WebElement btnChecklist = rowTarget.findElement(By.xpath(".//button[contains(@class, 'btn-check')]"));
+            WebElement btnChecklist = rowTarget.findElement(By.xpath(".//label[contains(@class, 'toggle-label')]"));
             
             // Scroll dan eksekusi klik via JS
             js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnChecklist);

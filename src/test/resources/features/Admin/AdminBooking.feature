@@ -10,7 +10,7 @@ Feature: Operasional dan Manajemen Admin
     When admin memilih opsi "Home" pada navbar admin
     And admin menekan tombol "Tambah Kelas"
     And admin mengisi data kelas serta menentukan kuota kelas yang valid
-    And admin menekan tombol "Tambah Kelas"
+    And admin menekan tombol tambah kelas
     Then sistem berhasil menyimpan jadwal kelas baru beserta pembatasan kuotanya
 
   @TC-20 @FR-08 @FR-09
@@ -37,7 +37,7 @@ Feature: Operasional dan Manajemen Admin
     And admin menekan tombol "Lihat Jadwal"
     And admin menekan tombol "Input Peserta"
     And admin mengisi data peserta dan nominal pembayaran cash dengan valid
-    And admin menekan tombol "Tambah Peserta"
+    And admin menekan tombol tambah peserta
     Then sistem berhasil mencatat pembayaran cash dan mendaftarkan peserta ke kelas
 
   @TC-23 @FR-13

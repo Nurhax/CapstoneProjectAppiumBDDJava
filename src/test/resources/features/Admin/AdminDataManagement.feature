@@ -10,7 +10,7 @@ Feature: Manajemen Data Master oleh Admin
     When admin memilih opsi "Home" pada navbar
     And admin menekan tombol "Lihat Jadwal"
     And admin mengubah data salah satu jadwal
-    And admin menekan tombol "Simpan Perubahan"
+    And admin menekan tombol simpan perubahan
     Then sistem berhasil memperbarui data jadwal kelas tersebut
 
   @TC-25 @FR-15
@@ -27,7 +27,7 @@ Feature: Manajemen Data Master oleh Admin
     When admin memilih opsi "Coach" pada navbar 
     And admin memilih salah satu coach dan klik logo edit
     And admin mengganti data coach untuk diperbarui
-    And admin menekan tombol "Simpan Perubahan"
+    And admin menekan tombol simpan perubahan
     Then sistem berhasil menyimpan pembaruan informasi data coach
 
   @TC-27 @FR-22
@@ -37,7 +37,7 @@ Feature: Manajemen Data Master oleh Admin
     And admin menekan tombol "Keanggotaan"
     And admin menekan tombol "Lihat Keanggotaan"
     And admin mengubah data membership untuk diperbarui
-    And admin menekan tombol "Simpan Perubahan"
+    And admin menekan tombol simpan perubahan
     Then sistem berhasil memperbarui paket data membership tersebut
 
   @TC-28 @FR-22

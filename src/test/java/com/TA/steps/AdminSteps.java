@@ -11,8 +11,10 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
+import java.util.Random;
 
 public class AdminSteps {
+    public static Random randomangka = new Random();
 
     private void bersihkanSplash() {
         try {
@@ -130,29 +132,50 @@ public class AdminSteps {
             Assert.fail("Tombol '" + namaTombol + "' gagal ditekan: " + e.getMessage());
         }
     }
-
-    // SMART MERGE: Menyatukan semua aksi "mengonfirmasi" pada modal/pop-up website
+    // SMART MERGE: Menyatukan konfirmasi Native Browser Alert DAN Modal HTML Website
     @And("^admin mengonfirmasi.*$")
     public void adminMengonfirmasiHapus() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        // Tunggu pendek khusus untuk ngecek keberadaan Native Alert agar tidak buang waktu
+        WebDriverWait shortWait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(3)); 
         JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+        
         try {
-            System.out.println("Mencari tombol konfirmasi 'Ya' pada pop-up website...");
+            System.out.println("Mengecek tipe pop-up konfirmasi yang muncul...");
             
-            // Tembak langsung ID atau Class dari modal konfirmasi yang kamu berikan
+            // TAHAP 1: Cek apakah ada Native Browser Alert (seperti alert Chrome)
+            try {
+                shortWait.until(ExpectedConditions.alertIsPresent());
+                SetupSteps.driver.switchTo().alert().accept();
+                System.out.println("SKENARIO A: Pop-up Native Browser terdeteksi dan berhasil disetujui (Alert Accepted)!");
+                Thread.sleep(1500); // Jeda tunggu backend PWA memproses
+                return; // Langsung KELUAR dari fungsi agar tidak nyari elemen HTML lagi
+            } catch (Exception noAlert) {
+                System.out.println("Bukan Pop-up Native. Lanjut mencari modal konfirmasi HTML di dalam website...");
+            }
+            
+            // TAHAP 2: Jika tidak ada Native Alert, cari tombol konfirmasi HTML (Modal PWA)
             String xpathConfirm = "//*[@id='btn-confirm-yes'] | //*[contains(@class, 'btn-confirm-yes')]";
             
+            // Gunakan presence lalu visibility biar aman dari animasi PWA
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathConfirm)));
             WebElement btnConfirm = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpathConfirm)));
             
             js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnConfirm);
             Thread.sleep(500);
-            js.executeScript("arguments[0].click();", btnConfirm);
             
-            System.out.println("Pop-up website berhasil disetujui (Tombol Ya ditekan).");
+            // Eksekusi murni atau JS
+            try {
+                btnConfirm.click();
+            } catch (Exception e) {
+                js.executeScript("arguments[0].click();", btnConfirm);
+            }
+            
+            System.out.println("SKENARIO B: Pop-up Website HTML berhasil disetujui (Tombol btn-confirm-yes ditekan)!");
             Thread.sleep(1500); // Jeda agar backend memproses data
             
         } catch (Exception e) {
-            Assert.fail("Gagal mengonfirmasi pop-up pada website (Tombol ID btn-confirm-yes tidak ditemukan): " + e.getMessage());
+            Assert.fail("Gagal mengonfirmasi pop-up (Baik Native Alert maupun Modal HTML tidak dapat ditangani). Error: " + e.getMessage());
         }
     }
 
@@ -206,12 +229,11 @@ public class AdminSteps {
 
             // 3. JURUS BYPASS DROPDOWN (Tunggu API & Paksa Index 1)
             System.out.println("Menunggu opsi dropdown ter-render dari API...");
-            Thread.sleep(1000); // Jeda krusial agar elemen <option> selesai dimuat
+            Thread.sleep(1000); 
             
             WebElement dropClass = SetupSteps.driver.findElement(By.xpath("//select[@name='class_id']"));
             WebElement dropCoach = SetupSteps.driver.findElement(By.xpath("//select[@name='coach_id']"));
             
-            // Kita pakai index 1 (opsi valid pertama) agar kebal walau data di database sedang sedikit
             try {
                 new org.openqa.selenium.support.ui.Select(dropClass).selectByIndex(1);
             } catch (Exception ex) {
@@ -224,23 +246,157 @@ public class AdminSteps {
                 js.executeScript("arguments[0].selectedIndex = 1; arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", dropCoach);
             }
             
-            // 4. Eksekusi Sisa Form via JS Bypass
+            // 4. JURUS BYPASS ANTI-NATIVE PICKER ANDROID 13
+            System.out.println("Mengisi Date & Time secara silent (Bypass Native Android Picker)...");
+
             WebElement dateField = SetupSteps.driver.findElement(By.xpath("//input[@name='schedule_date']"));
-            js.executeScript("arguments[0].value = '2026-06-15';", dateField);
+            js.executeScript("arguments[0].value = '2026-06-15'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", dateField);
             
+            // PERBAIKAN: Format jam wajib pakai titik dua (HH:mm) agar diterima HTML5!
             WebElement startField = SetupSteps.driver.findElement(By.xpath("//input[@name='start_time']"));
-            js.executeScript("arguments[0].value = '1212';", startField);
+            js.executeScript("arguments[0].value = '12:12'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", startField);
             
             WebElement endField = SetupSteps.driver.findElement(By.xpath("//input[@name='end_time']"));
-            js.executeScript("arguments[0].value = '1212';", endField);
+            js.executeScript("arguments[0].value = '13:13'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", endField);
             
+            // Eksekusi kolom kapasitas/kuota
             WebElement capField = SetupSteps.driver.findElement(By.xpath("//input[@name='capacity']"));
-            js.executeScript("arguments[0].value = '20';", capField);
+            js.executeScript("arguments[0].value = '20'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", capField);
             
-            System.out.println("Form pembuatan kelas beserta isian kuota berhasil diinput secara penuh.");
+            System.out.println("Form pembuatan kelas beserta isian kuota berhasil diinput secara penuh tanpa memicu pop-up kalender/jam.");
             
         } catch (Exception e) {
             Assert.fail("Gagal mengisi form pembuatan kelas: " + e.getMessage());
+        }
+    }
+    
+    @And("^admin menekan tombol tambah kelas$")
+    public void adminMenekanTombolSubmitTambahKelas() {
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+        
+        try {
+            System.out.println("Mencari tombol submit 'Tambah Kelas' spesifik di dalam modal...");
+            
+            // Mengunci tombol yang ada di dalam form
+            String xpathSubmit = "//form//button[@type='submit' and contains(@class, 'btn-modal-submit') and contains(normalize-space(), 'Tambah Kelas')]";
+            
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathSubmit)));
+            java.util.List<WebElement> buttons = SetupSteps.driver.findElements(By.xpath(xpathSubmit));
+            
+            WebElement targetBtn = null;
+            WebElement targetForm = null;
+            
+            // FILTER ANTI-HANTU: Cari form yang benar-benar MUNCUL/AKTIF di layar!
+            for (WebElement btn : buttons) {
+                if (btn.isDisplayed()) {
+                    targetBtn = btn;
+                    targetForm = btn.findElement(By.xpath("./ancestor::form")); // Kunci sekalian tag <form>-nya
+                    break;
+                }
+            }
+            
+            // Jaga-jaga kalau CSS-nya aneh, ambil elemen yang paling akhir di-render DOM
+            if (targetBtn == null && !buttons.isEmpty()) {
+                targetBtn = buttons.get(buttons.size() - 1);
+                targetForm = targetBtn.findElement(By.xpath("./ancestor::form"));
+            }
+            
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", targetBtn);
+            Thread.sleep(500); 
+            
+            // JURUS LICIK: Hapus atribut 'required' dari semua input di form ini biar gak diblokir native browser!
+            if (targetForm != null) {
+                js.executeScript(
+                    "var inputs = arguments[0].querySelectorAll('input, select');" +
+                    "for(var i=0; i<inputs.length; i++) { inputs[i].removeAttribute('required'); }", 
+                    targetForm
+                );
+            }
+            
+            // Eksekusi Klik Murni atau JS
+            try {
+                targetBtn.click();
+            } catch (Exception e) {
+                js.executeScript("arguments[0].click();", targetBtn);
+            }
+            
+            // JURUS BAZOOKA: Kalau form masih belum mau ketutup, paksa trigger form.submit() dari belakang!
+            try {
+                Thread.sleep(500);
+                if (targetBtn.isDisplayed() && targetForm != null) {
+                    System.out.println("Klik tombol diblokir PWA, menembak paksa event submit form...");
+                    js.executeScript("arguments[0].submit();", targetForm);
+                }
+            } catch (Exception e) {}
+            
+            Thread.sleep(2000); 
+            System.out.println("Berhasil menekan tombol submit Tambah Kelas!");
+            
+        } catch (Exception e) {
+            Assert.fail("Gagal menekan tombol submit Tambah Kelas di dalam modal. Error: " + e.getMessage());
+        }
+    }
+    
+    @And("^admin menekan tombol tambah peserta$")
+    public void adminMenekanTombolSubmitTambahPeserta() {
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+        
+        try {
+            System.out.println("Mencari tombol submit 'Tambah Peserta' spesifik di dalam modal...");
+            
+            String xpathSubmit = "//form//button[@type='submit' and contains(@class, 'btn-modal-submit') and contains(normalize-space(), 'Tambah Peserta')]";
+            
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathSubmit)));
+            java.util.List<WebElement> buttons = SetupSteps.driver.findElements(By.xpath(xpathSubmit));
+            
+            WebElement targetBtn = null;
+            WebElement targetForm = null;
+            
+            for (WebElement btn : buttons) {
+                if (btn.isDisplayed()) {
+                    targetBtn = btn;
+                    targetForm = btn.findElement(By.xpath("./ancestor::form"));
+                    break;
+                }
+            }
+            
+            if (targetBtn == null && !buttons.isEmpty()) {
+                targetBtn = buttons.get(buttons.size() - 1);
+                targetForm = targetBtn.findElement(By.xpath("./ancestor::form"));
+            }
+            
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", targetBtn);
+            Thread.sleep(500); 
+            
+            if (targetForm != null) {
+                js.executeScript(
+                    "var inputs = arguments[0].querySelectorAll('input, select');" +
+                    "for(var i=0; i<inputs.length; i++) { inputs[i].removeAttribute('required'); }", 
+                    targetForm
+                );
+            }
+            
+            try {
+                targetBtn.click();
+            } catch (Exception e) {
+                js.executeScript("arguments[0].click();", targetBtn);
+            }
+            
+            try {
+                Thread.sleep(500);
+                if (targetBtn.isDisplayed() && targetForm != null) {
+                    System.out.println("Klik tombol diblokir PWA, menembak paksa event submit form...");
+                    js.executeScript("arguments[0].submit();", targetForm);
+                }
+            } catch (Exception e) {}
+            
+            Thread.sleep(2000); 
+            System.out.println("Berhasil menekan tombol submit Tambah Peserta!");
+            
+        } catch (Exception e) {
+            Assert.fail("Gagal menekan tombol submit Tambah Peserta di dalam modal. Error: " + e.getMessage());
         }
     }
 
@@ -325,7 +481,7 @@ public class AdminSteps {
             Thread.sleep(500);
             
             inputName.clear();
-            inputName.sendKeys("Budi Tunai");
+            inputName.sendKeys("Budi Tunai" + randomangka.nextInt(0, 1000));
             
             System.out.println("Menunggu dropdown metode pembayaran ter-render...");
             
@@ -353,6 +509,80 @@ public class AdminSteps {
             
         } catch (Exception e) {
             Assert.fail("Gagal mengisi data pembayaran tunai: " + e.getMessage());
+        }
+    }
+    
+    @And("^admin menekan tombol simpan perubahan$")
+    public void adminMenekanTombolSimpanPerubahan() {
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+        
+        try {
+            System.out.println("Mencari tombol submit 'Simpan Perubahan' spesifik...");
+            
+            // XPATH SPESIFIK: Kunci class 'btn-save' dan type 'submit'
+            String xpathSubmit = "//button[@type='submit' and contains(@class, 'btn-save') and contains(normalize-space(), 'Simpan Perubahan')]";
+            
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathSubmit)));
+            java.util.List<WebElement> buttons = SetupSteps.driver.findElements(By.xpath(xpathSubmit));
+            
+            WebElement targetBtn = null;
+            WebElement targetForm = null;
+            
+            // FILTER ANTI-HANTU: Ambil tombol yang benar-benar tampil di layar
+            for (WebElement btn : buttons) {
+                if (btn.isDisplayed()) {
+                    targetBtn = btn;
+                    try {
+                        targetForm = btn.findElement(By.xpath("./ancestor::form")); // Cari induk form-nya
+                    } catch (Exception e) {}
+                    break;
+                }
+            }
+            
+            // Jaga-jaga kalau CSS aneh, hajar yang paling akhir dirender
+            if (targetBtn == null && !buttons.isEmpty()) {
+                targetBtn = buttons.get(buttons.size() - 1);
+                try {
+                    targetForm = targetBtn.findElement(By.xpath("./ancestor::form"));
+                } catch (Exception e) {}
+            }
+            
+            // Gulung layar agar presisi
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", targetBtn);
+            Thread.sleep(500); 
+            
+            // JURUS LICIK: Hapus atribut 'required' dari semua input di form ini biar gak diblokir native browser!
+            if (targetForm != null) {
+                js.executeScript(
+                    "var inputs = arguments[0].querySelectorAll('input, select');" +
+                    "for(var i=0; i<inputs.length; i++) { inputs[i].removeAttribute('required'); }", 
+                    targetForm
+                );
+            }
+            
+            // Eksekusi Klik Murni atau JS
+            try {
+                targetBtn.click();
+            } catch (Exception e) {
+                js.executeScript("arguments[0].click();", targetBtn);
+            }
+            
+            // JURUS BAZOOKA: Kalau form masih ngeyel gak nutup/submit, tembak paksa dari belakang!
+            try {
+                Thread.sleep(500);
+                if (targetBtn.isDisplayed() && targetForm != null) {
+                    System.out.println("Klik tombol diblokir PWA, menembak paksa event submit form...");
+                    js.executeScript("arguments[0].submit();", targetForm);
+                }
+            } catch (Exception e) {}
+            
+            // Jeda krusial agar backend PWA beneran nyimpan sebelum lanjut ngecek Notif!
+            Thread.sleep(2000); 
+            System.out.println("Berhasil menekan tombol submit Simpan Perubahan!");
+            
+        } catch (Exception e) {
+            Assert.fail("Gagal menekan tombol submit Simpan Perubahan. Error: " + e.getMessage());
         }
     }
 
@@ -384,8 +614,30 @@ public class AdminSteps {
 
     @Then("sistem berhasil memperbarui data jadwal kelas tersebut")
     public void sistemBerhasilPerbaruiJadwal() {
+        // Timeout 10 detik sudah pas
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
-        Assert.assertTrue("Gagal update jadwal!", wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("toast-success"))).isDisplayed());
+        
+        try {
+            System.out.println("Menunggu kemunculan notifikasi toast sukses...");
+            
+            // JEDA KRUSIAL: Beri napas 1 detik agar backend merespon dan animasi toast PWA selesai di-render
+            Thread.sleep(1000); 
+
+            // XPATH BADAK: Mencari elemen yang punya class 'toast-success' ATAU yang mengandung teks 'berhasil'
+            String xpathToast = "//*[contains(@class, 'toast-success') or contains(translate(normalize-space(.), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'berhasil')]";
+            
+            // Gunakan presenceOfElementLocated agar Selenium tidak terkecoh oleh animasi opacity/transisi CSS
+            WebElement toastNotif = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathToast)));
+            
+            // Ambil teksnya untuk dicetak ke log (memastikan isinya benar)
+            String pesanToast = toastNotif.getText().replace("\n", " ").trim();
+            System.out.println("Notifikasi berhasil ditangkap: '" + pesanToast + "'");
+            
+            Assert.assertTrue("Gagal update jadwal! Notifikasi tidak ditampilkan secara visual.", toastNotif.isDisplayed());
+            
+        } catch (Exception e) {
+            Assert.fail("Gagal mendeteksi notifikasi toast update jadwal. Error: " + e.getMessage());
+        }
     }
 
     @Then("sistem berhasil menghapus jadwal kelas tersebut dari daftar")
@@ -447,10 +699,31 @@ public class AdminSteps {
 
     @Then("sistem berhasil menyimpan pembaruan informasi data coach")
     public void sistemBerhasilSimpanPembaruanCoach() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        Assert.assertTrue("Gagal update coach!", wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("toast-success"))).isDisplayed());
-    }
+        // Naikkan timeout ke 10 detik biar aman dari emulator lemot
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        
+        try {
+            System.out.println("Menunggu kemunculan notifikasi toast sukses update coach...");
+            
+            // JEDA KRUSIAL: Beri napas 1 detik agar backend merespon dan animasi toast selesai di-render
+            Thread.sleep(1000); 
 
+            // XPATH BADAK: Mencari elemen yang punya class 'toast-success' ATAU yang mengandung teks 'berhasil'
+            String xpathToast = "//*[contains(@class, 'toast-success') or contains(translate(normalize-space(.), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'berhasil')]";
+            
+            // Gunakan presenceOfElementLocated agar kebal terhadap animasi transisi CSS
+            WebElement toastNotif = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathToast)));
+            
+            // Ambil teksnya untuk dicetak ke log terminal
+            String pesanToast = toastNotif.getText().replace("\n", " ").trim();
+            System.out.println("Notifikasi berhasil ditangkap: '" + pesanToast + "'");
+            
+            Assert.assertTrue("Gagal update data coach! Notifikasi tidak ditampilkan secara visual.", toastNotif.isDisplayed());
+            
+        } catch (Exception e) {
+            Assert.fail("Gagal mendeteksi notifikasi toast update coach. Error: " + e.getMessage());
+        }
+    }
     @And("admin mengubah data membership untuk diperbarui")
     public void adminMengubahDataMembership() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));

@@ -54,7 +54,7 @@ public class CustomerSteps{
         js.executeScript("arguments[0].click();", btnPrimary);
 
         WebElement usernameInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));
-        usernameInput.sendKeys("nurhax5"); 
+        usernameInput.sendKeys("nurhax1"); 
 
         SetupSteps.driver.findElement(By.id("password")).sendKeys("test123");
 
@@ -76,7 +76,7 @@ public class CustomerSteps{
         js.executeScript("arguments[0].click();", btnPrimary);
 
         WebElement usernameInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));
-        usernameInput.sendKeys("nurhax1");
+        usernameInput.sendKeys("nurhax");
 
         SetupSteps.driver.findElement(By.id("password")).sendKeys("test123");
 

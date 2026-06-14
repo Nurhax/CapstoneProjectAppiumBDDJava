@@ -15,8 +15,8 @@ Feature: Eksplorasi Kelas dan Coach
     Given customer sudah login dan berada di halaman Home
     And customer menekan tab "Home"
     When customer memilih filter "Hatha Yoga" pada tombol "Kelas"
-    And customer memilih filter "Selasa" pada tombol "Waktu"
-    And customer memilih filter "Budi Santoso" pada tombol "Coach"
+    And customer memilih filter "Sabtu" pada tombol "Waktu"
+    And customer memilih filter "iqbaltest" pada tombol "Coach"
     Then sistem hanya menampilkan daftar kelas yang sesuai dengan filter yang diterapkan
 
   @TC-08 @FR-05

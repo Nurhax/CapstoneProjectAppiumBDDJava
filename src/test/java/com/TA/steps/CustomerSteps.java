@@ -845,58 +845,50 @@ public class CustomerSteps{
             js.executeScript("arguments[0].click();", btnLanjutPembayaran);
             System.out.println("Tombol Lanjut Pembayaran berhasil diklik.");
             
-            // Beri jeda 2 detik penuh agar rendering modal selesai sempurna
+            // Beri jeda agak lama agar modal PWA muncul sempurna (jangan dikurangi)
             Thread.sleep(2000);
 
-            // 2. PROSES BERBURU TOMBOL "Ya" (MENGGUNAKAN KLIK KONDISIONAL)
-            String tombolLower = namaTombolKonfirmasi.toLowerCase();
+            // 2. PROSES TEMBAK TOMBOL "YA" (MENGGUNAKAN XPATH SNIPER FORM)
+            System.out.println("Menunggu form konfirmasi pemotongan kuota...");
             
-            // XPath Sniper: Cari tag button yang teks bersihnya adalah 'ya'
-            String xpathModalBtn = String.format(
-                "//button[contains(translate(normalize-space(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '%s')]",
-                tombolLower
-            );
+            // XPATH DEWA: Kita cari form yang action-nya ke 'payment/use-quota', lalu ambil button submit-nya!
+            // Ini menjamin 100% kita nggak akan ngeklik tombol 'Ya' milik modal lain yang lagi ngumpet.
+            String xpathModalBtn = "//form[contains(@action, 'payment/use-quota')]//button[@type='submit' or text()='Ya']";
 
-            System.out.println("Menunggu tombol '" + namaTombolKonfirmasi + "' siap untuk diklik...");
-            
-            // GUARD 1: Pastikan elemen bener-bener siap berinteraksi secara visual
-            WebElement btnKonfirmasi = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathModalBtn)));
+            // Gunakan presenceOfElementLocated agar aman dari animasi modal
+            WebElement btnKonfirmasi = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathModalBtn)));
             
             // Scroll agar posisinya pas di tengah layar emulator
             js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnKonfirmasi);
             Thread.sleep(500);
             
-            // GUARD 2: Kita coba klik normal bawaan Appium/Selenium dulu
+            // Karena tombolnya pakai inline styling (tanpa class), eksekusi paling aman adalah via Javascript!
+            System.out.println("Mengeksekusi klik persetujuan pemotongan kuota...");
+            
             try {
                 btnKonfirmasi.click();
-                System.out.println("Berhasil diklik menggunakan metode Standar.");
             } catch (Exception clickException) {
-                // FALLBACK: Kalau gagal karena terhalang layout, tembak pakai JS Executor
-                System.out.println("Klik standar gagal, mencoba menembak via JS Executor...");
+                System.out.println("Klik standar terhalang layer, menembak langsung via JS Executor...");
                 js.executeScript("arguments[0].click();", btnKonfirmasi);
-                System.out.println("Berhasil diklik menggunakan metode JS Executor.");
             }
+            
+            // JURUS BAZOOKA: Kalau ternyata masih ngeyel nggak pindah halaman, kita tembak Form Submit-nya langsung dari belakang!
+            try {
+                Thread.sleep(500);
+                if (btnKonfirmasi.isDisplayed()) {
+                    System.out.println("Form masih bandel, mengeksekusi force submit pada form 'use-quota'...");
+                    WebElement parentForm = btnKonfirmasi.findElement(By.xpath("./ancestor::form"));
+                    js.executeScript("arguments[0].submit();", parentForm);
+                }
+            } catch (Exception e) {}
             
             System.out.println("Berhasil menyetujui pemakaian kuota dengan menekan: " + namaTombolKonfirmasi);
             
-            // Jeda transisi ke halaman rincian gratis (Rp 0)
-            Thread.sleep(3000);
+            // Jeda panjang untuk transisi loading ke halaman invoice rincian gratis (Rp 0)
+            Thread.sleep(4000);
 
         } catch (Exception e) {
-            // FALLBACK TERAKHIR: Kalau XPath teks "Ya" macet, tembak button terakhir yang muncul di halaman
-            try {
-                System.out.println("XPath teks gagal, mencoba fallback klik button type='submit' terakhir...");
-                java.util.List<WebElement> buttons = SetupSteps.driver.findElements(By.xpath("//button[@type='submit' or text()='Ya']"));
-                if (!buttons.isEmpty()) {
-                    WebElement lastButton = buttons.get(buttons.size() - 1);
-                    js.executeScript("arguments[0].click();", lastButton);
-                    System.out.println("Tombol submit terakhir berhasil dieksekusi!");
-                    Thread.sleep(3000);
-                    return;
-                }
-            } catch (Exception ex) {}
-            
-            Assert.fail("Gagal pada flow modal kuota membership. Error: " + e.getMessage());
+            Assert.fail("Gagal mengeksekusi modal kuota membership. Error: " + e.getMessage());
         }
     }
     

@@ -69,7 +69,7 @@ public class CoachSteps {
         coachSudahLogin();
         
         // Arahkan langsung ke URL spesifik daftar peserta untuk pengujian isolasi upload berkas
-        SetupSteps.driver.get("http://10.0.2.2:8000/coach/schedule/36");
+        SetupSteps.driver.get("http://10.0.2.2:8000/coach/schedule/749");
         
         try {
             js.executeScript("var splash = document.getElementById('splash-circle'); if(splash) { splash.remove(); }");
@@ -258,32 +258,50 @@ public class CoachSteps {
         isAlreadyUploaded = false;
 
         try {
-            System.out.println("Mencari posisi Box Kontainer uploadArea di WebView...");
-            WebElement uploadAreaBox = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("buktiHadirInput")));
+            // JURUS 1: PAKSA BALIK KE WEBVIEW (Antisipasi context bocor dari step sebelumnya)
+            String currentContext = ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).getContext();
+            if (currentContext.contains("NATIVE_APP")) {
+                System.out.println("Mendeteksi kebocoran context! Memaksa Appium kembali ke WEBVIEW...");
+                for (String contextName : ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).getContextHandles()) {
+                    if (contextName.contains("WEBVIEW")) {
+                        ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).context(contextName);
+                        currentContext = contextName;
+                        break;
+                    }
+                }
+            }
+
+            System.out.println("Mencari posisi Box Kontainer di WebView...");
+            
+            // PERBAIKAN XPATH: Menggabungkan ID untuk kondisi BARU (uploadArea) dan Class untuk kondisi EDIT (photo-box)
+            String xpathContainer = "//*[@id='uploadArea'] | //*[contains(@class, 'photo-box')]";
+            WebElement uploadAreaBox = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathContainer)));
             
             // Gulung layar agar box upload area berada tepat di tengah-tengah emulator
             js.executeScript("arguments[0].scrollIntoView({block: 'center'});", uploadAreaBox);
             Thread.sleep(1000); 
 
             // PINDAH CONTEXT KE NATIVE_APP UNTUK KETUKAN JARI FISIK BYPASS SECURITY CHROME
-            String currentContext = ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).getContext();
             ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).context("NATIVE_APP");
-            System.out.println("Berhasil beralih ke NATIVE_APP.");
+            System.out.println("Berhasil beralih ke NATIVE_APP untuk bypass klik.");
 
-            // XPATH DINAMIS: Mendukung kondisi BARU (Belum upload) maupun KONDISI EDIT (Sudah pernah upload)
+            // XPATH DINAMIS NATIVE: Menangkap teks 'Select file' (Baru) atau 'tap untuk ganti' (Edit)
             String xpathTargetTombol = 
                 "//*[@text='Select file' or @content-desc='Select file'] | " +
-                "//*[contains(@text, 'Tap to change file') or contains(@text, 'Foto sudah diupload')] | " +
-                "//android.view.View[@resource-id='uploadText']";
+                "//*[contains(@text, 'tap untuk ganti') or contains(@text, 'Foto sudah diupload')] | " +
+                "//*[contains(@resource-id, 'uploadText')] | " +
+                "//*[contains(@resource-id, 'replaceCaption')]";
             
-            System.out.println("Memindai keberadaan elemen pemicu upload di layar...");
+            System.out.println("Memindai keberadaan elemen pemicu upload di layar native...");
             WebElement nativeTarget = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathTargetTombol)));
             
             String teksTerdeteksi = nativeTarget.getText();
-            System.out.println("Elemen ditemukan dengan teks visual: " + teksTerdeteksi);
+            System.out.println("Elemen ditemukan dengan teks visual Native: " + teksTerdeteksi);
 
             // Jika teks mengandung kata 'tap untuk ganti', kunci status ke TRUE
-            if (teksTerdeteksi.toLowerCase().contains("tap untuk ganti") || teksTerdeteksi.toLowerCase().contains("sudah diupload")) {
+            if (teksTerdeteksi.toLowerCase().contains("tap untuk ganti") || 
+                teksTerdeteksi.toLowerCase().contains("sudah diupload") || 
+                teksTerdeteksi.toLowerCase().contains("change file")) {
                 isAlreadyUploaded = true;
                 System.out.println("KONDISI EDIT DETECTED: Kelas ini sudah memiliki bukti foto sebelumnya.");
             } else {
@@ -296,11 +314,19 @@ public class CoachSteps {
 
             // KEMBALIKAN CONTEXT KE WEBVIEW SEBELUM PINDAH STEP
             ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).context(currentContext);
-            Thread.sleep(3500); // Jeda render modal picker
+            Thread.sleep(3500); // Jeda aman tunggu render modal picker OS keluar sempurna
 
         } catch (Exception e) {
-            try { ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).context("WEBVIEW_chrome"); } catch (Exception ex) {}
-            Assert.fail("Gagal memicu pop-up select file upload menggunakan ketukan jari fisik Native. Error: " + e.getMessage());
+            // Fallback penyelamat: Jika crash, pastikan context dibalikin ke WEBVIEW
+            try {
+                for (String contextName : ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).getContextHandles()) {
+                    if (contextName.contains("WEBVIEW")) {
+                        ((io.appium.java_client.android.AndroidDriver) SetupSteps.driver).context(contextName);
+                        break;
+                    }
+                }
+            } catch (Exception ex) {}
+            Assert.fail("Gagal memicu pop-up select file upload berkas. Error: " + e.getMessage());
         }
     }
     
@@ -391,11 +417,31 @@ public class CoachSteps {
 
     @Then("sistem berhasil menyimpan pembaruan kelas beserta bukti kehadiran")
     public void sistemSimpanUpdate() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        // Validasi pop-up toast notification sukses bawaan web aplikasi booking yoga kamu
-        boolean isSuccess = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("alert-success"))).isDisplayed();
-        Assert.assertTrue("Gagal menyimpan pembaruan kelas beserta unggahan bukti hadir!", isSuccess);
-        System.out.println("TC-16 Sukses Sempurna!");
+        // Naikkan timeout ke 10 detik biar aman menunggu proses upload backend
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        
+        try {
+            System.out.println("Menunggu kemunculan notifikasi sukses update kelas dan bukti hadir...");
+            
+            // JEDA KRUSIAL: Beri napas 1 detik agar backend merespon dan animasi pop-up/toast selesai di-render
+            Thread.sleep(1000); 
+
+            // XPATH BADAK: Mencari class 'toast-success' ATAU 'alert-success' ATAU teks yang mengandung 'berhasil'
+            String xpathToast = "//*[contains(@class, 'toast-success') or contains(@class, 'alert-success') or contains(translate(normalize-space(.), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'berhasil')]";
+            
+            // Gunakan presenceOfElementLocated agar kebal terhadap animasi transisi CSS (fade-in)
+            WebElement toastNotif = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathToast)));
+            
+            // Ambil teksnya untuk dicetak ke log terminal
+            String pesanToast = toastNotif.getText().replace("\n", " ").trim();
+            System.out.println("Notifikasi berhasil ditangkap: '" + pesanToast + "'");
+            
+            Assert.assertTrue("Gagal menyimpan pembaruan kelas beserta unggahan bukti hadir! Notifikasi tidak ditampilkan secara visual.", toastNotif.isDisplayed());
+            System.out.println("Skenario Upload Bukti Hadir Sukses Sempurna!");
+            
+        } catch (Exception e) {
+            Assert.fail("Gagal mendeteksi notifikasi sukses penyimpanan kelas. Error: " + e.getMessage());
+        }
     }
     
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

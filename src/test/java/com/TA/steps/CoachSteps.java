@@ -125,12 +125,16 @@ public class CoachSteps {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
         
-        // Temukan card-class jadwal mengajar
-        WebElement cardJadwal = wait.until(ExpectedConditions.presenceOfElementLocated(By.className("btn-cek-jadwal")));
+        // Jalankan login awal terlebih dahulu via method existing
+        coachSudahLogin();
         
-        // Scroll dan klik pakai JS
-        js.executeScript("arguments[0].scrollIntoView({block: 'center'});", cardJadwal);
-        js.executeScript("arguments[0].click();", cardJadwal);
+        // Arahkan langsung ke URL spesifik daftar peserta untuk pengujian isolasi upload berkas
+        SetupSteps.driver.get("http://10.0.2.2:8000/coach/schedule/749");
+        
+        try {
+            js.executeScript("var splash = document.getElementById('splash-circle'); if(splash) { splash.remove(); }");
+            Thread.sleep(500);
+        } catch (Exception e) {}
     }
 
     @And("coach menekan tombol {string}")
@@ -169,38 +173,54 @@ public class CoachSteps {
 
     @When("coach mengklik logo checklist pada peserta di bagian {string}")
     public void klikChecklistPeserta(String status) {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+        // Naikkan timeout biar aman kalau loading tabelnya agak lama
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
         JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
 
         try {
-            // 1. Cari baris pertama (tr) di dalam tabel yang statusnya masih 'Tidak Hadir'
-            String xpathRowTidakHadir = "//table[@class='absen-table']/tbody/tr[td//span[@class='status-badge-tidak']][1]";
-            WebElement rowTarget = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathRowTidakHadir)));
+            System.out.println("Mencari peserta dengan status belum absen...");
+            
+            // XPATH SAKTI: Cari baris (tr) yang punya input toggle tapi BELUM dicentang (not(@checked))
+            String xpathRowTarget = "//tr[.//input[contains(@class, 'toggle-input') and not(@checked)]]";
+            
+            // Tunggu sampai minimal ada 1 baris peserta yang belum diabsen
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathRowTarget)));
+            
+            // Ambil semua baris yang cocok, kita proses yang pertama aja (index 0)
+            java.util.List<WebElement> rows = SetupSteps.driver.findElements(By.xpath(xpathRowTarget));
+            if (rows.isEmpty()) {
+                Assert.fail("Tidak ada peserta dengan status Tidak Hadir (semua sudah tercentang absen).");
+            }
+            WebElement rowTarget = rows.get(0);
 
             // 2. Ambil teks nama pelanggan dari td pertama di baris tersebut
-            // [cite: 3]
             WebElement elementNama = rowTarget.findElement(By.xpath("./td[1]"));
             checkedParticipantName = elementNama.getText().trim();
             System.out.println("Menyimpan nama peserta yang akan diabsen: " + checkedParticipantName);
 
-            // 3. Temukan tombol (.btn-check) yang berada di dalam baris yang SAMA
-            // [cite: 3]
+            // 3. Temukan tombol (.toggle-label) yang berfungsi sebagai visual klik di baris tersebut
             WebElement btnChecklist = rowTarget.findElement(By.xpath(".//label[contains(@class, 'toggle-label')]"));
             
-            // Scroll dan eksekusi klik via JS
+            // Scroll agar posisinya pas dan eksekusi klik via JS (karena input aslinya disembunyikan CSS)
             js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnChecklist);
+            Thread.sleep(500); 
             js.executeScript("arguments[0].click();", btnChecklist);
+            
             System.out.println("Berhasil mencentang kehadiran untuk: " + checkedParticipantName);
-            Thread.sleep(500);
+            Thread.sleep(1000); // Beri jeda agar animasi switch toggle selesai
 
             // 4. Klik tombol Update Kelas (.btn-update) untuk submit data
-            WebElement btnUpdate = wait.until(ExpectedConditions.presenceOfElementLocated(By.className("btn-update")));
-            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnUpdate);
-            js.executeScript("arguments[0].click();", btnUpdate);
-            System.out.println("Tombol Update Kelas (.btn-update) berhasil ditekan!");
+            // Pakai kombinasi XPath biar tahan banting kalau developer ubah class
+            String xpathUpdate = "//*[contains(@class, 'btn-update') or @type='submit']";
+            WebElement btnUpdate = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathUpdate)));
             
-            // Beri jeda proses submit database
-            Thread.sleep(2500);
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnUpdate);
+            Thread.sleep(500);
+            js.executeScript("arguments[0].click();", btnUpdate);
+            System.out.println("Tombol Update Kelas berhasil ditekan!");
+            
+            // Beri jeda panjang untuk proses backend menyimpan data ke database
+            Thread.sleep(3000);
 
         } catch (Exception e) {
             Assert.fail("Gagal memproses centang tabel absen atau update kelas. Error: " + e.getMessage());

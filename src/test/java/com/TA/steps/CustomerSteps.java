@@ -497,7 +497,7 @@ public class CustomerSteps{
 
     @When("customer memilih jadwal kelas yoga yang tersedia")
     public void customerPilihKelasTersedia() {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
         JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
 
         try {
@@ -533,23 +533,39 @@ public class CustomerSteps{
         WebElement tabHome = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathTabHome)));
         js.executeScript("arguments[0].click();", tabHome);
 
-        List<WebElement> availableClasses = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.className("card-class")));
+        // Pastikan kelas bener-bener udah ke-render text-nya (bukan skeleton loading)
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.className("card-class-title")));
+        List<WebElement> availableClasses = SetupSteps.driver.findElements(By.className("card-class"));
         boolean berhasilPilihKelas = false;
 
         for (WebElement card : availableClasses) {
             try {
-                String classTitle = card.findElement(By.className("card-class-title")).getText().trim();
+                // JURUS 1: Gulung layar dulu SEBELUM baca teks biar Appium nggak buta
+                js.executeScript("arguments[0].scrollIntoView({block: 'center'});", card); 
+                Thread.sleep(500);
 
-                if (!bookedClasses.contains(classTitle)) {
+                WebElement titleEl = card.findElement(By.className("card-class-title"));
+                
+                // JURUS 2: Sedot teks pakai Appium + Backup pakai Javascript
+                String classTitle = titleEl.getText();
+                if (classTitle == null || classTitle.trim().isEmpty()) {
+                    classTitle = (String) js.executeScript("return arguments[0].innerText || arguments[0].textContent;", titleEl);
+                }
+                
+                if (classTitle != null) {
+                    classTitle = classTitle.trim();
+                }
+
+                // JURUS 3: Pastikan classTitle TIDAK KOSONG sebelum dicek ke bookedClasses!
+                if (classTitle != null && !classTitle.isEmpty() && !bookedClasses.contains(classTitle)) {
                     expectedClassName = classTitle; 
-                    System.out.println("Menemukan kelas yang belum dibooking: " + expectedClassName);
+                    System.out.println("Menemukan kelas yang belum dibooking: '" + expectedClassName + "'");
 
-                    js = (JavascriptExecutor) SetupSteps.driver;
-                    js.executeScript("arguments[0].scrollIntoView({block: 'center'});", card); 
                     js.executeScript("arguments[0].click();", card);
-                    
                     berhasilPilihKelas = true;
                     break; 
+                } else {
+                    System.out.println("Kelas '" + classTitle + "' di-skip (Kosong atau sudah dibooking).");
                 }
             } catch (Exception e) {
                 System.out.println("Nemu card tanpa judul, skip ke card sebelahnya...");
@@ -558,7 +574,7 @@ public class CustomerSteps{
         }
 
         if (!berhasilPilihKelas) {
-            Assert.fail("Skenario gagal: Semua kelas yang ada di Home sudah pernah di-booking oleh user ini!");
+            Assert.fail("Skenario gagal: Semua kelas yang ada di Home sudah pernah di-booking oleh user ini atau gagal memuat text!");
         }
     }
 

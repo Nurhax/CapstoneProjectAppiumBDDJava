@@ -7,20 +7,20 @@ Feature: Operasional dan Manajemen Coach
   @TC-13 @FR-17
   Scenario: Coach melihat jadwal mengajar hari ini (FR17)
     Given coach sudah login dan berada di halaman coach 
-    When coach menekan tab "Home" pada navbar 
+    When coach menekan tab "Beranda" pada navbar 
     Then coach dapat melihat jadwal kelas yang harus diajar hari ini 
 
   @TC-14 @FR-20
   Scenario: Coach melihat daftar peserta pada kelas yang akan diajar (FR20)
     Given coach sudah login dan berada di halaman coach 
-    And coach menekan tab "Home" pada navbar 
+    And coach menekan tab "Beranda" pada navbar 
     When coach memilih jadwal kelas yang tersedia hari ini 
     Then coach dapat melihat daftar peserta untuk kelas tersebut 
   
   @TC-15 @FR-21 @FR-24
   Scenario: Coach memverifikasi kehadiran peserta kelas (FR21)
     Given coach sudah login dan berada di halaman coach 
-    And coach menekan tab "Home" pada navbar 
+    And coach menekan tab "Beranda" pada navbar 
     And coach memilih jadwal kelas yang tersedia hari ini
     When coach mengklik logo checklist pada peserta di bagian "Tidak Hadir" 
     Then data peserta tersebut berubah menjadi ke bagian "Hadir"

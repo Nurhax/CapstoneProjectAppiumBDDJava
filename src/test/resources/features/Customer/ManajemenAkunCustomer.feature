@@ -16,5 +16,5 @@ Feature: Manajemen Profil Pribadi Customer
     And customer menekan tombol simpan Nomor HP
     And customer menekan tombol Edit Password
     And customer mengubah passwordnya menjadi "test123"
-    And customer menekan tombol simpan Password
+    And customer menekan tombol simpan Kata Sandi
     Then data profil customer berubah sesuai dengan inputan yang baru

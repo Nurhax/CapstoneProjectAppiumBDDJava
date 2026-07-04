@@ -7,7 +7,7 @@ Feature: Manajemen Pelaporan dan Analitik oleh Admin
   @TC-30 @FR-24
   Scenario: Admin memantau rekaman log data kehadiran peserta kelas
     Given admin berada di halaman dashboard admin
-    When admin memilih opsi "Home" pada navbar
+    When admin memilih opsi "Beranda" pada navbar
     And admin memilih salah satu jadwal kelas aktif
     And admin menekan tombol "Lihat Jadwal"
     Then sistem menampilkan data rekaman kehadiran peserta pada kelas tersebut

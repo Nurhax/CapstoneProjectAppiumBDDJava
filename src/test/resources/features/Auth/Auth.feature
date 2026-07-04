@@ -8,7 +8,7 @@ Feature: User Authentication
   Scenario: Pengguna Berhasil Registrasi Sebagai Customer (FR01) 
     Given pengguna belum memiliki akun
     And pengguna berada di landing page
-    When pengguna memilih opsi "Register"
+    When pengguna memilih opsi "Daftar"
     And pengguna memasukkan nama lengkap, username, nomer telpon, dan password yang valid pada halaman register
     And pengguna menekan tombol "Buat Akun"
     Then sistem menampilkan notifikasi "Akun berhasil dibuat! Silakan login."
@@ -17,7 +17,7 @@ Feature: User Authentication
   Scenario: Pengguna Berhasil Login Sebagai Customer (FR02)
     Given pengguna sudah memiliki akun yang terdaftar dan aktif
     And pengguna berada di landing page
-    When pengguna memilih opsi "Log In"
+    When pengguna memilih opsi "Masuk"
     And pengguna memasukkan username dan password yang valid pada halaman login
     And pengguna menekan tombol "Masuk"
     And pengguna diarahkan ke halaman utama (Dashboard)
@@ -26,7 +26,7 @@ Feature: User Authentication
   Scenario: Pengguna Berhasil Login Sebagai Admin (FR02)
     Given pengguna sudah memiliki akun yang terdaftar dan aktif dari developer
     And pengguna berada di landing page
-    When pengguna memilih opsi "Log In" 
+    When pengguna memilih opsi "Masuk" 
     And pengguna memasukkan username dan password yang valid pada halaman login
     And pengguna menekan tombol "Masuk"
     Then pengguna diarahkan ke halaman utama admin (Dashboard)
@@ -35,12 +35,12 @@ Feature: User Authentication
   Scenario: Pengguna Berhasil Mendaftarkan Coach Baru (FR-16)
     Given pengguna sudah memiliki akun yang terdaftar dan aktif dari developer
     And pengguna berada di landing page
-    When pengguna memilih opsi "Log In"
+    When pengguna memilih opsi "Masuk"
     And pengguna memasukkan username dan password yang valid pada halaman login
     And pengguna menekan tombol "Masuk"
     Then pengguna diarahkan ke halaman utama admin (Dashboard)
-    And pengguna menekan tab "Coach"
-    And pengguna menekan tombol "Tambah Coach"
+    And pengguna menekan tab "Pelatih"
+    And pengguna menekan tombol "Tambah Pelatih"
     And pengguna mengisi nama coach, keahlian, nomor hp, deskripsi, rate per kelas, pengalaman tahun dan password
     And pengguna menekan tombol "Tambah Coach" lagi
     Then sistem menampilkan notifikasi "Coach berhasil ditambahkan!" 
@@ -49,7 +49,7 @@ Feature: User Authentication
    Scenario: Pengguna Berhasil Login Sebagai Coach (FR02)
     Given pengguna sudah memiliki akun yang terdaftar dan aktif dari admin
     And pengguna berada di landing page
-    When pengguna memilih opsi "Log In"
+    When pengguna memilih opsi "Masuk"
     And pengguna memasukkan username dan password yang valid pada halaman login
     And pengguna menekan tombol "Masuk"
     Then pengguna diarahkan ke halaman utama coach (Dashboard)

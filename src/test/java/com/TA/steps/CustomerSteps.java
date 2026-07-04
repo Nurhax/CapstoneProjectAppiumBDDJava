@@ -298,7 +298,7 @@ public class CustomerSteps{
     @And("customer menekan tombol Edit Password")
     public void customerMenekanTombolEditPassword() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        String xpath = "//div[contains(@class, 'info-row-left') and contains(., 'Password')]/following-sibling::button[contains(@class, 'edit-btn')]";
+        String xpath = "//div[contains(@class, 'info-row-left') and contains(., 'Kata Sandi')]/following-sibling::button[contains(@class, 'edit-btn')]";
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath))).click();
     }
 
@@ -397,7 +397,7 @@ public class CustomerSteps{
             js.executeScript("arguments[0].scrollIntoView({block: 'center'});", targetBtn);
             Thread.sleep(500); 
             
-            // JURUS LICIK: Cari form atau div terdekat dari tombol itu, hapus required/hidden inputannya
+            // Cari form atau div terdekat dari tombol itu, hapus required/hidden inputannya
             js.executeScript(
                 "var wrapper = arguments[0].closest('form') || arguments[0].closest('div');" +
                 "if(wrapper) {" +
@@ -433,7 +433,7 @@ public class CustomerSteps{
         JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
 
         try {
-            // 1. JURUS BYPASS ANIMASI: Hancurkan splash screen
+            // 1. BYPASS ANIMASI: Hancurkan splash screen
             try {
                 js.executeScript("var splash = document.getElementById('splash-circle'); if(splash) { splash.remove(); }");
                 js.executeScript("var spinner = document.getElementById('splash-spinner'); if(spinner) { spinner.remove(); }");
@@ -529,7 +529,7 @@ public class CustomerSteps{
             Thread.sleep(500);
         } catch (Exception e) {}
 
-        String xpathTabHome = "//a[contains(normalize-space(), 'Home')]";
+        String xpathTabHome = "//a[contains(normalize-space(), 'Beranda')]";
         WebElement tabHome = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathTabHome)));
         js.executeScript("arguments[0].click();", tabHome);
 

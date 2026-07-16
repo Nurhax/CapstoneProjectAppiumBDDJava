@@ -1,55 +1,35 @@
-@Auth
-Feature: User Authentication
+@Authentication
+Feature: Autentikasi dan Registrasi Pengguna
   Sebagai pengguna aplikasi
-  Saya ingin bisa mendaftar dan masuk ke dalam sistem sesuai dengan role/peran saya
-  Agar saya bisa menggunakan fitur aplikasi yoga
+  Saya ingin mendaftar dan masuk ke dalam sistem
+  Agar saya bisa menggunakan fitur sesuai peran saya (Customer, Admin, atau Coach)
 
-  @TC-01 @FR-01
-  Scenario: Pengguna Berhasil Registrasi Sebagai Customer (FR01) 
-    Given pengguna belum memiliki akun
-    And pengguna berada di landing page
-    When pengguna memilih opsi "Daftar"
-    And pengguna memasukkan nama lengkap, username, nomer telpon, dan password yang valid pada halaman register
-    And pengguna menekan tombol "Buat Akun"
-    Then sistem menampilkan notifikasi "Akun berhasil dibuat! Silakan login."
+  @TC-01 @US-01
+  Scenario: Pengguna Berhasil Registrasi Sebagai Customer
+    Given pengguna belum terdaftar di sistem
+    When pengguna mendaftar dengan username dan password yang valid
+    Then sistem harus mengkonfirmasi pembuatan akun dan mengarahkan untuk login
 
-  @TC-02 @FR-02
-  Scenario: Pengguna Berhasil Login Sebagai Customer (FR02)
-    Given pengguna sudah memiliki akun yang terdaftar dan aktif
-    And pengguna berada di landing page
-    When pengguna memilih opsi "Masuk"
-    And pengguna memasukkan username dan password yang valid pada halaman login
-    And pengguna menekan tombol "Masuk"
-    And pengguna diarahkan ke halaman utama (Dashboard)
-  
-  @TC-03 @FR-02
-  Scenario: Pengguna Berhasil Login Sebagai Admin (FR02)
-    Given pengguna sudah memiliki akun yang terdaftar dan aktif dari developer
-    And pengguna berada di landing page
-    When pengguna memilih opsi "Masuk" 
-    And pengguna memasukkan username dan password yang valid pada halaman login
-    And pengguna menekan tombol "Masuk"
-    Then pengguna diarahkan ke halaman utama admin (Dashboard)
-  
-  @TC-04 @FR-16
-  Scenario: Pengguna Berhasil Mendaftarkan Coach Baru (FR-16)
-    Given pengguna sudah memiliki akun yang terdaftar dan aktif dari developer
-    And pengguna berada di landing page
-    When pengguna memilih opsi "Masuk"
-    And pengguna memasukkan username dan password yang valid pada halaman login
-    And pengguna menekan tombol "Masuk"
-    Then pengguna diarahkan ke halaman utama admin (Dashboard)
-    And pengguna menekan tab "Pelatih"
-    And pengguna menekan tombol "Tambah Pelatih"
-    And pengguna mengisi nama coach, keahlian, nomor hp, deskripsi, rate per kelas, pengalaman tahun dan password
-    And pengguna menekan tombol "Tambah Coach" lagi
-    Then sistem menampilkan notifikasi "Coach berhasil ditambahkan!" 
-  
-   @TC-05 @FR-02  
-   Scenario: Pengguna Berhasil Login Sebagai Coach (FR02)
-    Given pengguna sudah memiliki akun yang terdaftar dan aktif dari admin
-    And pengguna berada di landing page
-    When pengguna memilih opsi "Masuk"
-    And pengguna memasukkan username dan password yang valid pada halaman login
-    And pengguna menekan tombol "Masuk"
-    Then pengguna diarahkan ke halaman utama coach (Dashboard)
+  @TC-02 @US-02
+  Scenario: Pengguna Berhasil Login Sebagai Customer
+    Given seorang customer memiliki akun yang terdaftar dan aktif
+    When customer melakukan login dengan kredensial yang valid
+    Then customer harus diarahkan ke halaman utama (Dashboard) mereka
+
+  @TC-03 @US-02
+  Scenario: Pengguna Berhasil Login Sebagai Admin
+    Given seorang admin memiliki akun yang terdaftar dan aktif
+    When admin melakukan login dengan kredensial yang valid
+    Then admin harus diarahkan ke halaman utama admin (Dashboard)
+
+  @TC-04 @US-16
+  Scenario: Pengguna Berhasil Mendaftarkan Coach Baru
+    Given seorang admin sudah login ke sistem
+    When admin menambahkan detail coach baru yang valid
+    Then sistem harus mengkonfirmasi penambahan coach dan menampilkan notifikasi keberhasilan
+
+  @TC-05 @US-02
+  Scenario: Pengguna Berhasil Login Sebagai Coach
+    Given seorang coach memiliki akun yang terdaftar dan aktif
+    When coach melakukan login dengan kredensial yang valid
+    Then coach harus diarahkan ke halaman utama coach (Dashboard)

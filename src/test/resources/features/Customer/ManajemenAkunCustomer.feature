@@ -5,16 +5,8 @@ Feature: Manajemen Profil Pribadi Customer
   Agar informasi dan kontak saya selalu terbarui
 
   @TC-10 @FR-19
-  Scenario: Customer berhasil memperbarui data profil (FR19)
-    Given customer sudah login dengan akun berbeda dan berada di halaman home
-    And customer menekan tab "Profil"
-    When customer menekan tombol Edit Nama Lengkap
-    And customer mengubah nama menjadi "Iqbal updated"
-    And customer menekan tombol simpan Nama Lengkap
-    And customer menekan tombol Edit Nomer HP
-    And customer mengubah Nomer HP menjadi "08111222333"
-    And customer menekan tombol simpan Nomor HP
-    And customer menekan tombol Edit Password
-    And customer mengubah passwordnya menjadi "test123"
-    And customer menekan tombol simpan Kata Sandi
-    Then data profil customer berubah sesuai dengan inputan yang baru
+  Scenario: Customer berhasil memperbarui data profil (US19)
+    Given customer sudah login dan berada di halaman profil
+    When customer memperbarui nama lengkap, nomor HP, dan password miliknya masing-masing
+    Then setiap perubahan tersimpan sesuai field yang diedit tanpa memengaruhi data lain
+    And sistem menampilkan data profil terbaru setelah perubahan berhasil disimpan

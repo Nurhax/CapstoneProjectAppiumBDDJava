@@ -17,9 +17,11 @@ import java.util.Random;
 
 /**
  * @author M.Iqbal Nurhaq
+ * Refactored to match Authentication.feature
  */
 public class AuthSteps {
-    // Variabel untuk testing random and out of bounds data
+    
+    // Variabel state untuk antar-step
     public String Username;
     public String Password;
     
@@ -43,86 +45,26 @@ public class AuthSteps {
     }
 
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    // BAGIAN DATA PREPARASI
-    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    
-    @Given("pengguna sudah memiliki akun yang terdaftar dan aktif")
-    public void penggunaSudahMemilikiAkunCustomer(){
-        if(usernameCustomer == null){
-            usernameCustomer = "nurhaqtesting";
-            System.out.println("Test login berjalan lebih dahulu sebelum daftar/register");
-        }
-        Username = usernameCustomer;
-        Password = "test123";
-        System.out.println("Data preparasi customer auth");
-    }
-    
-    @Given("pengguna belum memiliki akun")
-    public void penggunaBelumMemilikiAkun(){
-        System.out.println("User akan menggunakan data untuk registrasi akun baru");
-    }
-    
-    @Given("pengguna sudah memiliki akun yang terdaftar dan aktif dari developer")
-    public void adminSudahMempunyaiAkun(){
-        Username = "minimalist@admin.com";
-        Password = "minimalist123";
-        System.out.println("Data preparasi admin auth");
-    }
-    
-    @Given("pengguna sudah memiliki akun yang terdaftar dan aktif dari admin")
-    public void penggunaSudahMemilikiAkunCoach(){
-        if (usernameCoach == null){
-            usernameCoach = "iqbaltest";
-        }
-        Username = usernameCoach + "@coach.com";
-        Password = "test123";
-        System.out.println("Data preparasi coach auth sama dengan data registrasi");
-    }
-    
-    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    // BAGIAN NAVIGASI DAN INTERAKSI
-    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    
-    @And("pengguna berada di landing page")
-    public void penggunaBeradaDiLandingPage(){
-        SetupSteps.driver.get("http://10.0.2.2:8000");
-    }
-    
-    @When("pengguna memilih opsi {string}")
-    public void penggunaMemilihOpsi(String opsi){
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        String xpathSelector = String.format("//*[contains(text(), '%s')]", opsi);
-        
-        WebElement tombolOpsi = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathSelector)));
-        JavascriptExecutor executor = (JavascriptExecutor) SetupSteps.driver;
-        executor.executeScript("arguments[0].click();", tombolOpsi);
-        
-        System.out.println("Berhasil bypass animasi dan klik opsi: " + opsi);
-    }
-    
-    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    // INPUT FORM PADA PWA
+    // SCENARIO 1: Pengguna Berhasil Registrasi Sebagai Customer (US-01)
     // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-    @And("pengguna memasukkan username dan password yang valid pada halaman login")
-    public void inputDataLoginValid(){
+    @Given("pengguna belum terdaftar di sistem")
+    public void penggunaBelumTerdaftar() {
+        System.out.println("User akan menggunakan data untuk registrasi akun baru");
+        SetupSteps.driver.get("http://10.0.2.2:8000"); // Landing page
+        
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+        JavascriptExecutor executor = (JavascriptExecutor) SetupSteps.driver;
         
-        WebElement fieldUser = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));
-        fieldUser.clear();
-        fieldUser.sendKeys(Username);
-        
-        WebElement fieldPass = SetupSteps.driver.findElement(By.id("password"));
-        fieldPass.clear();
-        fieldPass.sendKeys(Password);
-        
-        // Panggil pengaman keyboard setelah isi password
-        amankanKeyboard();
+        // Asumsi: memilih tombol daftar di landing page
+        WebElement btnDaftar = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[contains(text(), 'Daftar') or contains(text(), 'Register')]")));
+        executor.executeScript("arguments[0].click();", btnDaftar);
     }
-    
-    @And("pengguna memasukkan nama lengkap, username, nomer telpon, dan password yang valid pada halaman register")
-    public void inputDataRegisterCustomerValid(){
+
+    @When("pengguna mendaftar dengan username dan password yang valid")
+    public void penggunaMendaftarAkunValid() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+        JavascriptExecutor executor = (JavascriptExecutor) SetupSteps.driver;
         
         usernameCustomer = "iqbaltesting" + rand.nextInt(1000);
         namaLengkapCustomer = "iqbal nurhaq testing" + rand.nextInt(1000);
@@ -132,131 +74,201 @@ public class AuthSteps {
         SetupSteps.driver.findElement(By.name("phone")).sendKeys("081234567890");
         SetupSteps.driver.findElement(By.id("password")).sendKeys("test123");
         
-        // Panggil pengaman keyboard setelah isi semua form registrasi
         amankanKeyboard();
+
+        // Klik tombol buat akun / register
+        WebElement btnSubmit = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[contains(@class, 'btn-submit') or contains(text(), 'Buat Akun')]")));
+        executor.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnSubmit);
+        executor.executeScript("arguments[0].click();", btnSubmit);
     }
-    
-    @And("pengguna mengisi nama coach, keahlian, nomor hp, deskripsi, rate per kelas, pengalaman tahun dan password")
-    public void inputDataCoachBaru(){
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
-        
-        usernameCoach = "iqbaltesting" + rand.nextInt(1000);
-        int rateCoach = (rand.nextInt(10000) + 1) * 1000;
-        
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("name"))).sendKeys(usernameCoach);
-        WebElement dropdownSpesialisasi = SetupSteps.driver.findElement(By.name("class_id"));
-        Select selectSpesialisasi = new Select(dropdownSpesialisasi);
-        selectSpesialisasi.selectByVisibleText("Yin Yoga");
-        
-        SetupSteps.driver.findElement(By.name("phone")).sendKeys("089988887777");
-        SetupSteps.driver.findElement(By.name("bio")).sendKeys("Instruktur yoga bersertifikat dengan pengalaman internasional. passnya:test123");
-        SetupSteps.driver.findElement(By.name("rate_per_class")).sendKeys(Integer.toString(rateCoach));
-        SetupSteps.driver.findElement(By.name("years_experience")).sendKeys("5");
-        SetupSteps.driver.findElement(By.name("password")).sendKeys("test123");
-        
-        System.out.println("Berhasil mengisi data coach baru.");
-        // Panggil pengaman keyboard sebelum submit tambah coach
-        amankanKeyboard();
-    }
-    
-    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    // TOMBOL DAN TAB PWA
-    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    
-    @And("pengguna menekan tombol {string}")
-    public void penggunaMenekanTombol(String namaTombol) {
+
+    @Then("sistem harus mengkonfirmasi pembuatan akun dan mengarahkan untuk login")
+    public void sistemKonfirmasiAkunDanArahkanLogin() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
-        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
-        String xpathSelector = "";
-
-        if (namaTombol.equalsIgnoreCase("Tambah Coach")) {
-            xpathSelector = "//button[contains(@class, 'btn-tambah-coach')]";
-        } else if(namaTombol.equalsIgnoreCase("Buat Akun")){
-            xpathSelector = "//button[contains(@class, 'btn-submit')]";
-        } else {
-            xpathSelector = String.format("//button[contains(., '%s')]", namaTombol);
-        }
-
         try {
-            // Kita gunakan presenceOfElementLocated agar tidak terkecoh oleh pergeseran keyboard
-            WebElement tombol = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathSelector)));
+            // Verifikasi notifikasi berhasil
+            boolean isNotifikasiMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(normalize-space(), 'berhasil') or contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'success')]"))).isDisplayed();
+            Assert.assertTrue("Notifikasi sukses register tidak muncul!", isNotifikasiMuncul);
             
-            // Scroll dulu biar posisinya pas di layar pasca keyboard ditutup
-            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", tombol);
-            Thread.sleep(500);
-            
-            // Eksekusi paksa menggunakan JS Click biar bypass interupsi layout keyboard turun
-            js.executeScript("arguments[0].click();", tombol);
-            System.out.println("Berhasil mengeklik tombol '" + namaTombol + "' via JS Executor.");
+            // Verifikasi elemen halaman login (seperti form username login)
+            boolean isDiHalamanLogin = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username"))).isDisplayed();
+            Assert.assertTrue("Sistem tidak mengarahkan ke halaman login!", isDiHalamanLogin);
         } catch (Exception e) {
-            Assert.fail("Gagal menekan tombol '" + namaTombol + "'. Error: " + e.getMessage());
+            Assert.fail("Gagal memvalidasi konfirmasi pembuatan akun. Error: " + e.getMessage());
         }
     }
-    
-    @And("pengguna menekan tombol {string} lagi")
-    public void penggunaMenekanTombolLagi(String tombolLama){
+
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // SCENARIO 2: Pengguna Berhasil Login Sebagai Customer (US-02)
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+    @Given("seorang customer memiliki akun yang terdaftar dan aktif")
+    public void customerMemilikiAkunAktif() {
+        if(usernameCustomer == null){
+            usernameCustomer = "nurhaqtesting"; // Fallback data
+        }
+        Username = usernameCustomer;
+        Password = "test123";
+        
+        SetupSteps.driver.get("http://10.0.2.2:8000");
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
         
-        String xpathSelector = "//button[contains(@class, 'btn-modal-submit')]";
-        try {
-            WebElement tombol = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathSelector)));
-            js.executeScript("arguments[0].click();", tombol);
-        } catch (Exception e) {
-            Assert.fail("Gagal menekan tombol modal submit lagi. Error: " + e.getMessage());
-        }
+        try { js.executeScript("var splash = document.getElementById('splash-circle'); if(splash) { splash.remove(); }"); } catch (Exception e) {}
+        
+        // Asumsi: Klik Login utama
+        WebElement btnPrimary = wait.until(ExpectedConditions.presenceOfElementLocated(By.className("btn-primary")));
+        js.executeScript("arguments[0].click();", btnPrimary);
     }
-    
-    @And("pengguna menekan tab {string}")
-    public void penggunaMenekanTab(String namaTab) {
+
+    @When("customer melakukan login dengan kredensial yang valid")
+    @When("admin melakukan login dengan kredensial yang valid")
+    @When("coach melakukan login dengan kredensial yang valid")
+    public void loginKredensialValid() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
         JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
         
-        String xpathSelector = String.format("//a[contains(., '%s')]", namaTab);
-        try {
-            WebElement tab = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathSelector)));
-            js.executeScript("arguments[0].click();", tab);
-        } catch (Exception e) {
-            Assert.fail("Gagal menekan tab '" + namaTab + "'. Error: " + e.getMessage());
-        }
+        WebElement fieldUser = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));
+        fieldUser.clear();
+        fieldUser.sendKeys(Username);
+        
+        WebElement fieldPass = SetupSteps.driver.findElement(By.id("password"));
+        fieldPass.clear();
+        fieldPass.sendKeys(Password);
+        
+        amankanKeyboard();
+
+        WebElement btnSubmit = wait.until(ExpectedConditions.presenceOfElementLocated(By.className("btn-submit")));
+        js.executeScript("arguments[0].click();", btnSubmit);
     }
-    
-    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    // BAGIAN VERIFIKASI PER SKENARIO
-    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    
-    @And("^pengguna diarahkan ke halaman utama \\(Dashboard\\)$")
-    public void penggunaDiarahkanKeDashboardCustomer() {
+
+    @Then("^customer harus diarahkan ke halaman utama \\(Dashboard\\) mereka$")
+    public void customerDiarahkanKeDashboard() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
         boolean isDashboardMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("card-promo"))).isDisplayed();
         Assert.assertTrue("Gagal masuk ke dashboard customer!", isDashboardMuncul);
     }
 
-    @Then("^pengguna diarahkan ke halaman utama admin \\(Dashboard\\)$")
-    public void penggunaDiarahkanKeDashboardAdmin() {
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // SCENARIO 3: Pengguna Berhasil Login Sebagai Admin (US-02)
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+    @Given("seorang admin memiliki akun yang terdaftar dan aktif")
+    public void adminMemilikiAkunAktif() {
+        Username = "minimalist@admin.com";
+        Password = "minimalist123";
+        
+        SetupSteps.driver.get("http://10.0.2.2:8000");
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+        
+        try { js.executeScript("var splash = document.getElementById('splash-circle'); if(splash) { splash.remove(); }"); } catch (Exception e) {}
+        
+        // Asumsi: Klik tombol Login Admin di landing page jika ada (atau login universal)
+        WebElement btnAdmin = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[contains(text(), 'Login Admin') or @class='btn-primary']")));
+        js.executeScript("arguments[0].click();", btnAdmin);
+    }
+
+    @Then("^admin harus diarahkan ke halaman utama admin \\(Dashboard\\)$")
+    public void adminDiarahkanKeDashboard() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
         boolean isAdminMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("calendar-wrap"))).isDisplayed();
         Assert.assertTrue("Gagal masuk ke dashboard admin!", isAdminMuncul);
     }
 
-    @Then("^pengguna diarahkan ke halaman utama coach \\(Dashboard\\)$")
-    public void penggunaDiarahkanKeDashboardCoach() {
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // SCENARIO 4: Pengguna Berhasil Mendaftarkan Coach Baru (US-16)
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+    @Given("seorang admin sudah login ke sistem")
+    public void adminSudahLogin() {
+        adminMemilikiAkunAktif();
+        loginKredensialValid();
+        adminDiarahkanKeDashboard(); // Pastikan sudah di dalam sistem
+    }
+
+    @When("admin menambahkan detail coach baru yang valid")
+    public void adminTambahCoachBaru() {
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+
+        try {
+            // 1. Pindah ke Tab Coach (Menu Admin)
+            WebElement tabCoach = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[contains(., 'Coach') or contains(., 'Daftar Coach')]")));
+            js.executeScript("arguments[0].click();", tabCoach);
+            Thread.sleep(1000);
+
+            // 2. Klik Tambah Coach
+            WebElement btnTambah = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[contains(@class, 'btn-tambah-coach')]")));
+            js.executeScript("arguments[0].click();", btnTambah);
+            Thread.sleep(500);
+
+            // 3. Isi Data (Dari InputDataCoachBaru)
+            usernameCoach = "iqbaltesting" + rand.nextInt(1000);
+            int rateCoach = (rand.nextInt(10000) + 1) * 1000;
+            
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("name"))).sendKeys(usernameCoach);
+            WebElement dropdownSpesialisasi = SetupSteps.driver.findElement(By.name("class_id"));
+            new Select(dropdownSpesialisasi).selectByVisibleText("Yin Yoga");
+            
+            SetupSteps.driver.findElement(By.name("phone")).sendKeys("089988887777");
+            SetupSteps.driver.findElement(By.name("bio")).sendKeys("Instruktur yoga bersertifikat dengan pengalaman internasional.");
+            SetupSteps.driver.findElement(By.name("rate_per_class")).sendKeys(Integer.toString(rateCoach));
+            SetupSteps.driver.findElement(By.name("years_experience")).sendKeys("5");
+            SetupSteps.driver.findElement(By.name("password")).sendKeys("test123");
+            
+            amankanKeyboard();
+
+            // 4. Submit Modal/Form
+            WebElement btnSubmitModal = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[contains(@class, 'btn-modal-submit') or contains(text(), 'Simpan')]")));
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", btnSubmitModal);
+            js.executeScript("arguments[0].click();", btnSubmitModal);
+            
+            System.out.println("Form Coach berhasil disubmit.");
+            Thread.sleep(2000); // Tunggu proses backend
+        } catch (Exception e) {
+            Assert.fail("Gagal menambahkan coach baru. Error: " + e.getMessage());
+        }
+    }
+
+    @Then("sistem harus mengkonfirmasi penambahan coach dan menampilkan notifikasi keberhasilan")
+    public void sistemKonfirmasiPenambahanCoach() {
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
+        try {
+            boolean isNotifMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'berhasil')]"))).isDisplayed();
+            Assert.assertTrue("Notifikasi penambahan coach gagal muncul!", isNotifMuncul);
+        } catch (Exception e) {
+            Assert.fail("Sistem tidak mengkonfirmasi penambahan coach: " + e.getMessage());
+        }
+    }
+
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // SCENARIO 5: Pengguna Berhasil Login Sebagai Coach (US-02)
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+    @Given("seorang coach memiliki akun yang terdaftar dan aktif")
+    public void coachMemilikiAkunAktif() {
+        if (usernameCoach == null){
+            usernameCoach = "iqbaltest";
+        }
+        Username = usernameCoach + "@coach.com";
+        Password = "test123";
+        
+        SetupSteps.driver.get("http://10.0.2.2:8000");
+        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(5));
+        JavascriptExecutor js = (JavascriptExecutor) SetupSteps.driver;
+        
+        try { js.executeScript("var splash = document.getElementById('splash-circle'); if(splash) { splash.remove(); }"); } catch (Exception e) {}
+        
+        // Asumsi: Klik Login universal/coach
+        WebElement btnLoginUtama = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[contains(text(), 'Login') or @class='btn-primary']")));
+        js.executeScript("arguments[0].click();", btnLoginUtama);
+    }
+
+    @Then("^coach harus diarahkan ke halaman utama coach \\(Dashboard\\)$")
+    public void coachDiarahkanKeDashboard() {
         WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
         boolean isCoachMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("coach-content"))).isDisplayed();
         Assert.assertTrue("Gagal masuk ke dashboard coach!", isCoachMuncul);
-    }
-
-    @Then("sistem menampilkan notifikasi {string}")
-    public void sistemMenampilkanNotifikasi(String expectedMessage) {
-        WebDriverWait wait = new WebDriverWait(SetupSteps.driver, Duration.ofSeconds(10));
-        String xpathNotifikasi = String.format("//*[contains(normalize-space(), '%s')]", expectedMessage);
-        
-        try {
-            boolean isNotifikasiMuncul = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpathNotifikasi))).isDisplayed();
-            Assert.assertTrue("Notifikasi tidak muncul!", isNotifikasiMuncul);
-            System.out.println("Berhasil menemukan notifikasi: " + expectedMessage);
-        } catch (Exception e) {
-            Assert.fail("Gagal menemukan teks notifikasi: '" + expectedMessage + "' dalam waktu yang ditentukan.");
-        }
     }
 }

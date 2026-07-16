@@ -4,35 +4,26 @@ Feature: Eksplorasi Kelas dan Coach
   Saya ingin melihat jadwal, memfilter kelas, dan melihat profil coach
   Agar saya bisa memilih kelas yoga yang sesuai sebelum melakukan booking
     
-  @TC-06 @FR-04
-  Scenario: Customer Melihat Daftar Jadwal Kelas Yoga Yang Tersedia Di Halaman Home(FR04)
+  @TC-06 @US-04
+  Scenario: Customer Melihat Daftar Jadwal Kelas Yoga Yang Tersedia Di Halaman Home(US04)
     Given customer sudah login dan berada di halaman Home
-    When customer menekan tab "Beranda"
-    Then sistem menampilkan daftar jadwal kelas yoga yang tersedia
+    When customer membuka daftar jadwal kelas
+    Then sistem menampilkan daftar jadwal kelas yoga yang tersedia secara real-time
 
-  @TC-07 @FR-05
-  Scenario: Customer menggunakan filter saat mencari kelas di halaman home (FR05)
-    Given customer sudah login dan berada di halaman Home
-    And customer menekan tab "Beranda"
-    When customer memilih filter "Hatha Yoga" pada tombol "Kelas"
-    And customer memilih filter "Sabtu" pada tombol "Waktu"
-    And customer memilih filter "iqbaltest" pada tombol "Coach"
-    Then sistem hanya menampilkan daftar kelas yang sesuai dengan filter yang diterapkan
+  @TC-07 @US-05
+  Scenario: Customer menggunakan filter saat mencari kelas di halaman home (US05)
+    Given customer berada di halaman daftar jadwal kelas
+    When customer menerapkan filter berdasarkan kelas, waktu, dan coach
+    Then sistem hanya menampilkan jadwal yang sesuai dengan kriteria filter yang diterapkan
 
-  @TC-08 @FR-05
-  Scenario: Customer menggunakan filter saat mencari membership di halaman member (FR05)
-    Given customer sudah login dan berada di halaman Home
-    And customer menekan tab "Anggota"
-    When customer memilih filter "Hatha Yoga" pada tombol "Kelas"
-    Then sistem hanya menampilkan daftar kelas yang sesuai dengan filter yang diterapkan
-    #Gak ada filter waktu dan coach karena jatohnya seperti voucher    
+  @TC-08 @US-05
+  Scenario: Customer menggunakan filter saat mencari membership di halaman member (US05)
+    Given customer berada di halaman membership
+    When customer menerapkan filter berdasarkan jenis kelas
+    Then sistem hanya menampilkan paket membership yang sesuai dengan kriteria filter
 
-  @TC-09 @FR-18
-  Scenario: Customer melihat profil detail seorang Coach di halaman home (FR18)
-    Given customer sudah login dan berada di halaman Home
-    And customer menekan tab "Beranda"
-    When customer melihat salah satu kelas yang tersedia
-    And customer menekan foto profil coach pada kelas yang dilihat
-    Then sistem menampilkan halaman informasi detail profil coach tersebut
-
-    
+  @TC-09 @US-18
+  Scenario: Customer melihat profil detail seorang Coach di halaman home (US18)
+    Given customer sedang melihat daftar jadwal kelas yang tersedia 
+    When customer memilih untuk melihat profil salah satu coach 
+    Then sistem menampilkan halaman profil coach beserta nama, spesialisasi, dan jadwal mengajarnya.
